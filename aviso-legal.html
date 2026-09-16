@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aviso legal | QR3D</title>
+<meta name="description" content="Aviso legal de QR3D.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css?v=20260916">
+</head>
+<body>
+<a href="#main" class="skip-link">Ir al contenido</a>
+<header class="site-header">
+  <a href="/" class="brand">
+    <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+    <span>QR3D</span>
+  </a>
+</header>
+<main id="main" class="legal-page">
+  <a href="index.html" class="back">← Volver a la herramienta</a>
+  <h1>Aviso legal</h1>
+
+  <h2>Titular del sitio</h2>
+  <p><!-- TODO: nombre/razón social, NIF/CIF, domicilio y contacto del titular del sitio --></p>
+
+  <h2>Objeto</h2>
+  <p>Este sitio ofrece una herramienta gratuita para diseñar códigos QR y exportarlos como imagen o como archivo 3D para impresión. Todo el procesamiento ocurre en el navegador del usuario.</p>
+
+  <h2>Responsabilidad</h2>
+  <p>El titular no se hace responsable del uso que el usuario haga de los códigos generados ni de los archivos 3D descargados, ni de los resultados de impresión obtenidos con impresoras o materiales de terceros.</p>
+
+  <h2>Propiedad intelectual</h2>
+  <p>Este sitio utiliza librerías de código abierto bajo licencias MIT y otras compatibles. <!-- TODO: si se usan librerías con licencia LGPL/GPL, añadir aquí los créditos correspondientes. --></p>
+
+  <h2>Legislación aplicable</h2>
+  <p><!-- TODO: legislación y jurisdicción aplicable --></p>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <span>© <span id="year"></span> QR3D</span>
+    <nav aria-label="Legal">
+      <a href="privacidad.html">Privacidad</a>
+      <a href="aviso-legal.html">Aviso legal</a>
+    </nav>
+  </div>
+</footer>
+<script defer>document.addEventListener("DOMContentLoaded",function(){var y=document.getElementById("year");if(y)y.textContent=new Date().getFullYear();});</script>
+</body>
+</html>
