@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="es-PE">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Powerlyte — Hidratación que se nota</title>
+  <meta name="description" content="Powerlyte: bebida hidratante con sodio, potasio, cloruro y zinc. Poca azúcar, cero jugo de fruta. Conoce sus sabores, su tabla nutricional completa y cuándo tomarla.">
+  <meta name="theme-color" content="#04070f">
+  <meta property="og:title" content="Powerlyte — Hidratación que se nota">
+  <meta property="og:description" content="4 electrolitos + zinc. Tabla nutricional transparente. Antes, durante y después.">
+  <meta property="og:type" content="website">
+  <!-- TODO: og:image 1200×630 -->
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="is-loading">
+
+<!-- ============ LOADER ============ -->
+<div class="loader" aria-hidden="true">
+  <div class="loader__drop">
+    <svg viewBox="0 0 60 80"><defs><clipPath id="dropClip"><path d="M30 2C30 2 4 34 4 52a26 26 0 0052 0C56 34 30 2 30 2z"/></clipPath></defs>
+      <path class="loader__outline" d="M30 2C30 2 4 34 4 52a26 26 0 0052 0C56 34 30 2 30 2z"/>
+      <g clip-path="url(#dropClip)"><rect class="loader__fill" x="0" y="80" width="60" height="80"/></g>
+    </svg>
+  </div>
+  <div class="loader__count"><span data-loader-num>0</span>%</div>
+  <div class="loader__label">Rehidratando</div>
+</div>
+
+<div class="grain" aria-hidden="true"></div>
+<div class="cursor" aria-hidden="true"><div class="cursor__dot"></div><div class="cursor__ring"><span class="cursor__label"></span></div></div>
+
+<!-- ============ NAV ============ -->
+<header class="nav" data-nav>
+  <a href="#top" class="nav__logo" aria-label="Powerlyte inicio">
+    <!-- TODO: reemplazar por logo oficial SVG -->
+    <span class="logo-mark"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span>
+    <span class="logo-word">POWERLYTE</span>
+  </a>
+  <nav class="nav__links" aria-label="Principal">
+    <a href="#productos"><span>01</span>Productos</a>
+    <a href="#cuando"><span>02</span>¿Cuándo?</a>
+    <a href="#ciencia"><span>03</span>Ciencia</a>
+    <a href="#comunidad"><span>04</span>Comunidad</a>
+  </nav>
+  <a href="#comprar" class="btn btn--sm btn--glass magnetic"><span>Dónde comprar</span></a>
+  <button class="nav__burger" aria-label="Abrir menú" aria-expanded="false" data-burger><span></span><span></span></button>
+</header>
+
+<div class="menu" data-menu aria-hidden="true">
+  <a href="#productos">Productos</a>
+  <a href="#cuando">¿Cuándo tomarla?</a>
+  <a href="#ciencia">Ciencia</a>
+  <a href="#comunidad">Comunidad</a>
+  <a href="#comprar">Dónde comprar</a>
+</div>
+
+<main id="top">
+
+<!-- ============ HERO ============ -->
+<section class="hero" data-hero>
+  <canvas class="hero__bubbles" data-bubbles aria-hidden="true"></canvas>
+  <div class="hero__glow" aria-hidden="true"></div>
+
+  <div class="hero__meta mono">
+    <span>Na⁺ · K⁺ · Cl⁻ · Zn²⁺</span>
+    <span class="hide-sm">Lima, Perú — 12°02′S</span>
+    <span>Rehidratación deportiva</span>
+  </div>
+
+  <h1 class="hero__title" aria-label="Hidratación que se nota">
+    <span class="line"><span class="word" data-split>HIDRATACIÓN</span></span>
+    <span class="line line--outline"><span class="word" data-split>QUE SE NOTA</span></span>
+  </h1>
+
+  <div class="hero__stage" data-parallax="-0.12">
+    <div class="orbit" aria-hidden="true">
+      <span class="ion ion--na" style="--a:0deg">Na<sup>+</sup></span>
+      <span class="ion ion--k" style="--a:90deg">K<sup>+</sup></span>
+      <span class="ion ion--cl" style="--a:180deg">Cl<sup>−</sup></span>
+      <span class="ion ion--zn" style="--a:270deg">Zn<sup>2+</sup></span>
+    </div>
+    <!-- PLACEHOLDER: botella hero. Reemplazar el SVG por <img src="assets/img/hero-botella.png"> (PNG transparente 900×2000) -->
+    <div class="bottle bottle--hero">
+      <svg viewBox="0 0 200 460" class="bottle__svg">
+        <defs><clipPath id="bottleClipHero"><path d="M78 80C78 105 30 115 30 150V420q0 30 30 30h80q30 0 30-30V150c0-35-48-45-48-70z"/></clipPath></defs>
+        <rect x="68" y="6" width="64" height="52" rx="8" class="bottle__cap"/>
+        <rect x="74" y="56" width="52" height="10" rx="3" class="bottle__ring"/>
+        <path d="M78 80C78 105 30 115 30 150V420q0 30 30 30h80q30 0 30-30V150c0-35-48-45-48-70z" class="bottle__glass"/>
+        <g clip-path="url(#bottleClipHero)">
+          <path class="bottle__liquid" d="M0 170 Q50 155 100 170 T200 170 T300 170 T400 170 V460 H0Z"/>
+          <rect x="30" y="220" width="140" height="130" class="bottle__label"/>
+          <text x="100" y="278" text-anchor="middle" class="bottle__brand" textLength="116" lengthAdjust="spacingAndGlyphs">POWERLYTE</text>
+          <text x="100" y="300" text-anchor="middle" class="bottle__flavor" data-bottle-flavor>FRESA</text>
+          <rect x="44" y="120" width="12" height="310" rx="6" class="bottle__shine"/>
+        </g>
+      </svg>
+      <span class="ph-tag mono">IMG · botella hero · PNG 900×2000</span>
+    </div>
+  </div>
+
+  <div class="hero__bottom">
+    <p class="hero__lead reveal">Cuatro electrolitos esenciales y zinc para reponer lo que el sudor se lleva. <strong>Poca azúcar. Cero jugo de fruta.</strong> Toda la información, a la vista.</p>
+    <div class="hero__ctas reveal">
+      <a href="#productos" class="btn btn--primary magnetic" data-cursor="Ver"><span>Ver sabores</span><i class="arrow"></i></a>
+      <a href="#cuando" class="btn btn--ghost magnetic"><span>¿Cuándo tomarla?</span></a>
+    </div>
+  </div>
+
+  <svg class="hero__wave" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+    <path class="w1" d="M0 60 Q180 20 360 60 T720 60 T1080 60 T1440 60 V120 H0Z"/>
+    <path class="w2" d="M0 80 Q180 40 360 80 T720 80 T1080 80 T1440 80 V120 H0Z"/>
+  </svg>
+</section>
+
+<!-- ============ MARQUEE ============ -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee__track">
+    <span>Sodio</span><i>✦</i><span>Potasio</span><i>✦</i><span>Cloruro</span><i>✦</i><span>Zinc</span><i>✦</i><span>Poca azúcar</span><i>✦</i><span>Cero jugo de fruta</span><i>✦</i>
+    <span>Sodio</span><i>✦</i><span>Potasio</span><i>✦</i><span>Cloruro</span><i>✦</i><span>Zinc</span><i>✦</i><span>Poca azúcar</span><i>✦</i><span>Cero jugo de fruta</span><i>✦</i>
+  </div>
+</div>
+
+<!-- ============ MANIFIESTO ============ -->
+<section class="manifesto">
+  <p class="manifesto__text" data-words>
+    El agua calma la sed. Pero cuando sudas, pierdes mucho más que agua: pierdes sodio, potasio y cloruro, los minerales que mueven tus músculos y tus nervios. Powerlyte existe para devolverlos. Sin exceso de azúcar y sin letras pequeñas.
+  </p>
+  <div class="manifesto__stats">
+    <div class="stat reveal"><b data-count="4">0</b><span>electrolitos + zinc</span></div>
+    <div class="stat reveal"><b data-count="0">0</b><span>jugo de fruta añadido</span></div>
+    <div class="stat reveal"><b><span data-count="100">0</span>%</b><span>de la tabla nutricional publicada</span></div>
+  </div>
+</section>
+
+<!-- ============ 01 PRODUCTOS ============ -->
+<section class="products" id="productos" data-section="productos">
+  <header class="sec-head">
+    <span class="sec-num mono">01 — Productos y sabores</span>
+    <h2 class="sec-title" data-split-lines>Elige tu sabor.<br><em>Lee todo lo que lleva.</em></h2>
+    <p class="sec-intro reveal">Aquí no hay letra pequeña. Cada sabor y cada tamaño tienen su tabla completa: sodio, potasio, azúcares y calorías, por botella y por 100&nbsp;ml.</p>
+  </header>
+
+  <div class="lab">
+    <!-- Escenario del producto -->
+    <div class="lab__stage">
+      <div class="lab__bigname" aria-hidden="true"><span data-flavor-big>FRESA</span></div>
+      <div class="lab__blob" aria-hidden="true"></div>
+      <!-- PLACEHOLDER: botella por sabor. Reemplazar por <img data-flavor-img> y rutas en main.js (FLAVORS[].img) -->
+      <div class="bottle bottle--lab" data-lab-bottle>
+        <svg viewBox="0 0 200 460" class="bottle__svg">
+          <defs><clipPath id="bottleClipLab"><path d="M78 80C78 105 30 115 30 150V420q0 30 30 30h80q30 0 30-30V150c0-35-48-45-48-70z"/></clipPath></defs>
+          <rect x="68" y="6" width="64" height="52" rx="8" class="bottle__cap"/>
+          <rect x="74" y="56" width="52" height="10" rx="3" class="bottle__ring"/>
+          <path d="M78 80C78 105 30 115 30 150V420q0 30 30 30h80q30 0 30-30V150c0-35-48-45-48-70z" class="bottle__glass"/>
+          <g clip-path="url(#bottleClipLab)">
+            <path class="bottle__liquid" d="M0 170 Q50 155 100 170 T200 170 T300 170 T400 170 V460 H0Z"/>
+            <rect x="30" y="220" width="140" height="130" class="bottle__label"/>
+            <text x="100" y="278" text-anchor="middle" class="bottle__brand" textLength="116" lengthAdjust="spacingAndGlyphs">POWERLYTE</text>
+            <text x="100" y="300" text-anchor="middle" class="bottle__flavor" data-bottle-flavor>FRESA</text>
+            <rect x="44" y="120" width="12" height="310" rx="6" class="bottle__shine"/>
+          </g>
+        </svg>
+        <span class="ph-tag mono" data-ph-tag>IMG · Fresa 1 L · PNG 800×1800</span>
+      </div>
+      <div class="lab__size-badge mono"><span data-size-label>1 L</span></div>
+    </div>
+
+    <!-- Controles + tabla -->
+    <div class="lab__panel">
+      <div class="lab__group">
+        <span class="lab__label mono">Sabor</span>
+        <div class="chips" role="radiogroup" aria-label="Sabor" data-flavor-chips></div>
+      </div>
+      <div class="lab__group">
+        <span class="lab__label mono">Presentación</span>
+        <div class="seg" role="radiogroup" aria-label="Tamaño" data-size-seg></div>
+      </div>
+
+      <p class="lab__desc" data-flavor-desc></p>
+
+      <!-- Tabla nutricional -->
+      <div class="nlabel" aria-live="polite">
+        <div class="nlabel__head">
+          <h3>Información nutricional</h3>
+          <div class="seg seg--mini" role="radiogroup" aria-label="Base de cálculo">
+            <button role="radio" aria-checked="true" data-basis="bottle">Por botella</button>
+            <button role="radio" aria-checked="false" data-basis="100">Por 100 ml</button>
+          </div>
+        </div>
+        <div class="nlabel__serving mono">Porción: <span data-serving>1 botella (1000 ml)</span></div>
+        <div class="nlabel__rows" data-nrows></div>
+        <p class="nlabel__foot mono">* Valores referenciales de maqueta. Reemplazar con la ficha técnica y el rotulado oficial aprobado (DIGESA) antes de publicar.</p>
+      </div>
+
+      <ul class="pillars">
+        <li><b>Poca azúcar</b><span>Lo justo para ayudar a absorber sodio y agua, sin exceso.</span></li>
+        <li><b>Cero jugo de fruta</b><span>Sabor limpio que no empalaga, aun a mitad del entreno.</span></li>
+        <li><b>+ Zinc</b><span>Mineral que participa en el sistema inmune y el metabolismo.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Línea de sabores -->
+  <div class="lineup" data-lineup></div>
+</section>
+
+<!-- ============ 02 CUÁNDO ============ -->
+<section class="when" id="cuando" data-section="cuando">
+  <header class="sec-head sec-head--light">
+    <span class="sec-num mono">02 — ¿Cuándo tomarla?</span>
+    <h2 class="sec-title" data-split-lines>El momento importa<br><em>tanto como la bebida.</em></h2>
+  </header>
+
+  <div class="hscroll" data-hscroll>
+    <div class="hscroll__sticky">
+      <div class="hscroll__progress"><span data-hprogress></span></div>
+      <div class="hscroll__track" data-htrack>
+
+        <article class="moment" style="--m:#7cf5ff">
+          <div class="moment__time mono">−2 h / −30 min</div>
+          <div class="moment__num">01</div>
+          <h3 class="moment__title">Antes</h3>
+          <p class="moment__copy">Empieza hidratado. Llegar al entrenamiento con déficit de líquidos es empezar perdiendo.</p>
+          <div class="moment__dose"><b>5–7 ml/kg</b><span>unas 2–4 horas antes; un sorbo extra 15–30 min antes de empezar.</span></div>
+          <div class="ph ph--moment"><span class="mono">IMG · Atleta preparándose · 900×1100</span></div>
+        </article>
+
+        <article class="moment" style="--m:#ffd23f">
+          <div class="moment__time mono">cada 15–20 min</div>
+          <div class="moment__num">02</div>
+          <h3 class="moment__title">Durante</h3>
+          <p class="moment__copy">En sesiones de más de 60 minutos o de alta intensidad, repón en pequeñas tomas. No esperes a tener sed.</p>
+          <div class="moment__dose"><b>150–250 ml</b><span>por toma, ajustando a tu sudoración y al clima.</span></div>
+          <div class="ph ph--moment"><span class="mono">IMG · En carrera / partido · 900×1100</span></div>
+        </article>
+
+        <article class="moment" style="--m:#ff4d6d">
+          <div class="moment__time mono">0–2 h después</div>
+          <div class="moment__num">03</div>
+          <h3 class="moment__title">Después</h3>
+          <p class="moment__copy">La recuperación empieza con la rehidratación. El sodio ayuda a que el cuerpo retenga el líquido que tomas.</p>
+          <div class="moment__dose"><b>1,25–1,5 L</b><span>por cada kilo de peso perdido durante el ejercicio.</span></div>
+          <div class="ph ph--moment"><span class="mono">IMG · Recuperación post entreno · 900×1100</span></div>
+        </article>
+
+        <article class="moment" style="--m:#ff9f1c">
+          <div class="moment__time mono">&gt; 28 °C</div>
+          <div class="moment__num">04</div>
+          <h3 class="moment__title">Días de calor</h3>
+          <p class="moment__copy">Con calor y humedad sudas más, aunque no estés entrenando. El verano limeño o un trabajo al sol también cuentan.</p>
+          <div class="moment__dose"><b>+30%</b><span>de sudoración aproximada frente a un día templado.</span></div>
+          <div class="ph ph--moment"><span class="mono">IMG · Verano / sol · 900×1100</span></div>
+        </article>
+
+        <article class="moment" style="--m:#a78bfa">
+          <div class="moment__time mono">cuando lo necesites</div>
+          <div class="moment__num">05</div>
+          <h3 class="moment__title">Pérdida de líquidos</h3>
+          <p class="moment__copy">Jornadas largas, viajes, altura o una noche larga. Cuando el cuerpo pierde líquidos, reponer electrolitos ayuda a recuperarte.</p>
+          <div class="moment__dose"><b>Ojo</b><span>si hay diarrea, vómitos o fiebre persistentes, consulta a un médico.</span></div>
+          <div class="ph ph--moment"><span class="mono">IMG · Día a día / viaje · 900×1100</span></div>
+        </article>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Calculadora -->
+  <div class="calc" id="calculadora">
+    <div class="calc__intro">
+      <span class="sec-num mono">Herramienta</span>
+      <h3 class="calc__title">Calcula tu hidratación</h3>
+      <p>Una estimación rápida según tu peso, cuánto entrenas y el clima. Úsala como guía: cada cuerpo suda distinto.</p>
+    </div>
+    <form class="calc__form" data-calc>
+      <label class="field">
+        <span class="field__top"><span>Peso</span><output data-out="peso">70 kg</output></span>
+        <input type="range" name="peso" min="35" max="120" value="70">
+      </label>
+      <label class="field">
+        <span class="field__top"><span>Duración</span><output data-out="min">60 min</output></span>
+        <input type="range" name="min" min="15" max="240" step="15" value="60">
+      </label>
+      <fieldset class="field">
+        <legend class="field__top"><span>Intensidad</span></legend>
+        <div class="seg seg--calc">
+          <label><input type="radio" name="int" value="0.5"><span>Suave</span></label>
+          <label><input type="radio" name="int" value="0.8" checked><span>Media</span></label>
+          <label><input type="radio" name="int" value="1.2"><span>Alta</span></label>
+        </div>
+      </fieldset>
+      <fieldset class="field">
+        <legend class="field__top"><span>Clima</span></legend>
+        <div class="seg seg--calc">
+          <label><input type="radio" name="clima" value="0.85"><span>Fresco</span></label>
+          <label><input type="radio" name="clima" value="1" checked><span>Templado</span></label>
+          <label><input type="radio" name="clima" value="1.3"><span>Calor</span></label>
+        </div>
+      </fieldset>
+    </form>
+    <div class="calc__result">
+      <div class="calc__gauge">
+        <svg viewBox="0 0 200 200" aria-hidden="true">
+          <circle cx="100" cy="100" r="86" class="g-bg"/>
+          <circle cx="100" cy="100" r="86" class="g-fg" data-gauge/>
+        </svg>
+        <div class="calc__big"><b data-res="loss">0.8</b><span>litros de sudor estimados</span></div>
+      </div>
+      <ul class="calc__plan">
+        <li><span class="mono">Antes</span><b data-res="before">420 ml</b></li>
+        <li><span class="mono">Durante</span><b data-res="during">480 ml</b></li>
+        <li><span class="mono">Después</span><b data-res="after">500 ml</b></li>
+      </ul>
+      <p class="calc__note mono">Estimación orientativa basada en tasas de sudoración promedio. No reemplaza la indicación de un profesional de la salud.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 03 CIENCIA ============ -->
+<section class="science" id="ciencia" data-section="ciencia">
+  <header class="sec-head">
+    <span class="sec-num mono">03 — Respaldo científico</span>
+    <h2 class="sec-title" data-split-lines>El sudor no es<br><em>solo agua.</em></h2>
+    <p class="sec-intro reveal">Los electrolitos son minerales con carga eléctrica. Viajan disueltos en tu cuerpo y hacen posible que tus músculos se contraigan, tus nervios envíen señales y tus células retengan agua. Cuando sudas, se van con el sudor.</p>
+  </header>
+
+  <div class="ions">
+    <article class="ioncard reveal" style="--c:#7cf5ff">
+      <div class="ioncard__sym">Na<sup>+</sup></div>
+      <h3>Sodio</h3>
+      <p>El electrolito que más se pierde con el sudor. Mantiene el equilibrio de líquidos y ayuda a que el agua se absorba y se quede en el cuerpo.</p>
+      <span class="ioncard__tag mono">Equilibrio hídrico · calambres</span>
+    </article>
+    <article class="ioncard reveal" style="--c:#ffd23f">
+      <div class="ioncard__sym">K<sup>+</sup></div>
+      <h3>Potasio</h3>
+      <p>Clave en la contracción muscular y en la transmisión nerviosa. Trabaja en equipo con el sodio dentro y fuera de las células.</p>
+      <span class="ioncard__tag mono">Músculo · nervios</span>
+    </article>
+    <article class="ioncard reveal" style="--c:#a78bfa">
+      <div class="ioncard__sym">Cl<sup>−</sup></div>
+      <h3>Cloruro</h3>
+      <p>Acompaña al sodio y regula el balance de líquidos y el pH de la sangre.</p>
+      <span class="ioncard__tag mono">Balance de líquidos</span>
+    </article>
+    <article class="ioncard reveal" style="--c:#ff4d6d">
+      <div class="ioncard__sym">Zn<sup>2+</sup></div>
+      <h3>Zinc</h3>
+      <p>No es un electrolito, pero es un mineral esencial: participa en el sistema inmune y en cientos de reacciones del metabolismo.</p>
+      <span class="ioncard__tag mono">Inmunidad · metabolismo</span>
+    </article>
+  </div>
+
+  <!-- Cómo funciona -->
+  <div class="absorb">
+    <div class="absorb__copy">
+      <h3>¿Por qué no basta con agua?</h3>
+      <ol class="steps">
+        <li><b>Sudas</b><span>y pierdes agua junto con sodio, potasio y cloruro.</span></li>
+        <li><b>Si solo tomas agua,</b><span>diluyes los electrolitos que quedan; el cuerpo elimina parte del líquido.</span></li>
+        <li><b>Con sodio y algo de glucosa,</b><span>el intestino absorbe el agua más rápido: el agua “sigue” al sodio.</span></li>
+        <li><b>Resultado:</b><span>te rehidratas mejor y retienes más de lo que tomas.</span></li>
+      </ol>
+    </div>
+    <div class="absorb__viz" aria-hidden="true">
+      <div class="membrane"><span>Pared intestinal</span></div>
+      <div class="particles" data-absorb></div>
+      <span class="absorb__zone absorb__zone--top">Intestino</span>
+      <span class="absorb__zone absorb__zone--bot">Torrente sanguíneo</span>
+      <div class="absorb__legend mono"><span><i class="dot dot--na"></i>Sodio</span><span><i class="dot dot--gl"></i>Glucosa</span><span><i class="dot dot--h2o"></i>Agua</span></div>
+    </div>
+  </div>
+
+  <div class="facts">
+    <div class="fact reveal"><b><span data-count="60">0</span>%</b><p>de tu peso corporal es agua, aproximadamente.</p></div>
+    <div class="fact reveal"><b><span data-count="2">0</span>%</b><p>de peso perdido en sudor ya puede afectar tu rendimiento y concentración.</p></div>
+    <div class="fact reveal"><b><span data-count="2" data-decimals="1">0</span> L/h</b><p>de sudor puede perder un deportista en calor intenso.</p></div>
+  </div>
+
+  <!-- Aval profesional -->
+  <figure class="expert">
+    <div class="ph ph--expert"><span class="mono">IMG · Retrato especialista · 800×1000</span></div>
+    <blockquote>
+      <span class="expert__badge mono">Validación profesional · pendiente</span>
+      <p>“[Cita del nutricionista o médico deportivo. Ej.: La hidratación no es solo tomar agua. Después de sudar, reponer sodio y potasio es lo que permite recuperarte de verdad.]”</p>
+      <figcaption>
+        <b>[Nombre y apellido]</b>
+        <span>[Lic. en Nutrición · CNP N.º 0000 / Médico deportivo · CMP N.º 0000]</span>
+      </figcaption>
+    </blockquote>
+  </figure>
+
+  <!-- FAQ -->
+  <div class="faq">
+    <h3 class="faq__title">Preguntas frecuentes</h3>
+    <details><summary>¿Es lo mismo que un suero de rehidratación oral?</summary><p>No. Powerlyte es una bebida hidratante para actividad física y el día a día. Ante un cuadro de deshidratación por enfermedad (diarrea, vómitos, fiebre) sigue la indicación de tu médico.</p></details>
+    <details><summary>¿Cuánta azúcar tiene?</summary><p>Tiene poca azúcar: la cantidad exacta por botella y por 100 ml está en la tabla de la sección Productos. [Confirmar con ficha técnica.]</p></details>
+    <details><summary>¿La pueden tomar niños?</summary><p>[Respuesta a validar con el especialista de la marca y el rotulado oficial.]</p></details>
+    <details><summary>¿Puedo tomarla si no hago deporte?</summary><p>Sí, en días de calor o cuando pierdes líquidos. Si tienes hipertensión o alguna condición renal, consulta antes con tu médico por su contenido de sodio y potasio.</p></details>
+    <details><summary>¿Cuántas botellas puedo tomar al día?</summary><p>Depende de cuánto sudes. Usa la calculadora de arriba como guía y ajusta según tu actividad.</p></details>
+  </div>
+
+  <div class="sources mono">
+    <span>Referencias</span>
+    <ol>
+      <li>American College of Sports Medicine. Exercise and Fluid Replacement, Position Stand (2007).</li>
+      <li>ACSM / Academy of Nutrition and Dietetics / Dietitians of Canada. Nutrition and Athletic Performance (2016).</li>
+      <li>EFSA Panel on Dietetic Products, Nutrition and Allergies. Scientific Opinion on Dietary Reference Values for water (2010).</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ 04 COMUNIDAD ============ -->
+<section class="community" id="comunidad" data-section="comunidad">
+  <header class="sec-head sec-head--light">
+    <span class="sec-num mono">04 — Deporte y comunidad</span>
+    <h2 class="sec-title" data-split-lines>Donde se suda,<br><em>ahí estamos.</em></h2>
+  </header>
+
+  <div class="team">
+    <article class="athlete athlete--xl" data-cursor="Perfil">
+      <div class="ph"><span class="mono">IMG · Atleta principal · 1200×1500</span></div>
+      <div class="athlete__info"><span class="mono">Running · Maratón</span><h3>[Nombre del atleta]</h3><p>[Logro destacado: récord, podio, marca personal]</p></div>
+    </article>
+    <article class="athlete" data-cursor="Perfil">
+      <div class="ph"><span class="mono">IMG · Atleta 2 · 900×1100</span></div>
+      <div class="athlete__info"><span class="mono">Fútbol</span><h3>[Club / jugador]</h3></div>
+    </article>
+    <article class="athlete" data-cursor="Perfil">
+      <div class="ph"><span class="mono">IMG · Atleta 3 · 900×1100</span></div>
+      <div class="athlete__info"><span class="mono">Surf</span><h3>[Nombre del atleta]</h3></div>
+    </article>
+    <article class="athlete" data-cursor="Perfil">
+      <div class="ph"><span class="mono">IMG · Atleta 4 · 900×1100</span></div>
+      <div class="athlete__info"><span class="mono">Crossfit / Gym</span><h3>[Box o atleta]</h3></div>
+    </article>
+    <article class="athlete" data-cursor="Perfil">
+      <div class="ph"><span class="mono">IMG · Atleta 5 · 900×1100</span></div>
+      <div class="athlete__info"><span class="mono">Ciclismo</span><h3>[Club de ciclismo]</h3></div>
+    </article>
+  </div>
+
+  <div class="events">
+    <div class="events__head">
+      <h3>Próximos eventos</h3>
+      <span class="mono">Carreras · torneos · activaciones</span>
+    </div>
+    <ul class="events__list" data-events>
+      <li data-img="Evento 1"><time class="mono">[DD MMM]</time><b>[Nombre de la carrera 10K / 21K]</b><span>[Distrito, Lima]</span><em class="mono">Hidratación oficial</em></li>
+      <li data-img="Evento 2"><time class="mono">[DD MMM]</time><b>[Torneo de fútbol / vóley]</b><span>[Ciudad]</span><em class="mono">Auspicio</em></li>
+      <li data-img="Evento 3"><time class="mono">[DD MMM]</time><b>[Campeonato de surf]</b><span>[Playa]</span><em class="mono">Punto de hidratación</em></li>
+      <li data-img="Evento 4"><time class="mono">[DD MMM]</time><b>[Powerlyte Run Club · salida grupal]</b><span>[Malecón de Miraflores]</span><em class="mono">Comunidad</em></li>
+    </ul>
+    <div class="events__float" aria-hidden="true"><div class="ph"><span class="mono" data-float-label>IMG · Evento</span></div></div>
+  </div>
+
+  <div class="social">
+    <p class="social__tag">#<span>HidrataciónQueSeNota</span></p>
+    <!-- TODO: reemplazar href="#" por las URLs oficiales -->
+    <div class="social__links">
+      <a href="#" class="social__link" data-cursor="Seguir"><span class="mono">01</span>Instagram<i class="arrow"></i></a>
+      <a href="#" class="social__link" data-cursor="Seguir"><span class="mono">02</span>TikTok<i class="arrow"></i></a>
+      <a href="#" class="social__link" data-cursor="Seguir"><span class="mono">03</span>Facebook<i class="arrow"></i></a>
+      <a href="#" class="social__link" data-cursor="Seguir"><span class="mono">04</span>YouTube<i class="arrow"></i></a>
+    </div>
+    <div class="ugc">
+      <div class="ph"><span class="mono">IMG · UGC 1</span></div>
+      <div class="ph"><span class="mono">IMG · UGC 2</span></div>
+      <div class="ph"><span class="mono">IMG · UGC 3</span></div>
+      <div class="ph"><span class="mono">IMG · UGC 4</span></div>
+      <div class="ph"><span class="mono">IMG · UGC 5</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ COMPRAR / CTA ============ -->
+<section class="buy" id="comprar">
+  <div class="buy__inner">
+    <span class="sec-num mono">Dónde comprar</span>
+    <h2 class="buy__title"><span>Encuéntrala</span><span class="outline">cerca de ti</span></h2>
+    <div class="retailers">
+      <div class="retailer"><span class="mono">LOGO · Supermercado</span></div>
+      <div class="retailer"><span class="mono">LOGO · Farmacia</span></div>
+      <div class="retailer"><span class="mono">LOGO · Tienda de conveniencia</span></div>
+      <div class="retailer"><span class="mono">LOGO · Delivery / app</span></div>
+      <div class="retailer"><span class="mono">LOGO · Bodegas</span></div>
+    </div>
+    <a href="#" class="btn btn--primary btn--lg magnetic" data-cursor="Ir"><span>Comprar en línea</span><i class="arrow"></i></a>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="footer__big" aria-hidden="true">POWERLYTE</div>
+  <div class="footer__grid">
+    <div>
+      <p class="footer__claim">Hidratación que se nota.</p>
+      <p class="mono footer__small">Una marca distribuida por IDB · <a href="https://idb.pe/nuestras-marcas/" target="_blank" rel="noopener">idb.pe</a></p>
+    </div>
+    <nav class="footer__nav" aria-label="Pie de página">
+      <a href="#productos">Productos</a><a href="#cuando">¿Cuándo tomarla?</a><a href="#ciencia">Ciencia</a><a href="#comunidad">Comunidad</a>
+    </nav>
+    <nav class="footer__nav" aria-label="Legal">
+      <a href="#">Aviso legal</a><a href="#">Privacidad</a><a href="#">Libro de reclamaciones</a><a href="#">Contacto</a>
+    </nav>
+  </div>
+  <p class="footer__legal mono">Este producto no es un medicamento. Mantén una alimentación variada y un estilo de vida activo. Registro sanitario: [N.º DIGESA]. © <span data-year></span> Powerlyte.</p>
+</footer>
+
+<script src="main.js" defer></script>
+</body>
+</html>
