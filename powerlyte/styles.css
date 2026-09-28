@@ -344,7 +344,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 /* =========================================================================
    03 CIENCIA (claro)
    ========================================================================= */
-.science{background:var(--paper);color:var(--text-ink);padding:clamp(90px,11vw,160px) var(--pad);position:relative;z-index:4;border-radius:var(--radius) var(--radius) 0 0;margin-top:-28px}
+.science{background:var(--paper);color:var(--text-ink);padding:clamp(90px,11vw,160px) var(--pad);position:relative;z-index:5;border-radius:var(--radius) var(--radius) 0 0;margin-top:-28px}
 .science .sec-intro{color:var(--text-ink-dim)}
 .ions{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 .ioncard{--c:var(--ice);position:relative;background:#fff;border:1px solid var(--line-ink);border-radius:24px;padding:26px;display:flex;flex-direction:column;gap:12px;min-height:360px;overflow:hidden;transition:transform .6s var(--ease),background .5s,color .5s}
@@ -412,7 +412,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 /* =========================================================================
    04 COMUNIDAD (oscuro)
    ========================================================================= */
-.community{background:var(--ink);padding:clamp(90px,11vw,160px) var(--pad);position:relative;z-index:5;border-radius:var(--radius) var(--radius) 0 0;margin-top:-28px}
+.community{background:var(--ink);padding:clamp(90px,11vw,160px) var(--pad);position:relative;z-index:4;border-radius:var(--radius) var(--radius) 0 0;margin-top:-28px}
 .team{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,minmax(240px,32vw));gap:14px}
 .athlete{position:relative;border-radius:22px;overflow:hidden}
 .athlete--xl{grid-column:span 2;grid-row:span 2}
@@ -505,3 +505,4 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 .athlete .photo img{object-position:center 25%}
 .athlete__info{padding-top:90px;background:linear-gradient(transparent,rgba(4,7,15,.55) 35%,rgba(4,7,15,.94))}
 .athlete__info .mono{justify-self:start;padding:5px 10px;border-radius:999px;background:rgba(4,7,15,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.community{box-shadow:0 -1px 0 rgba(124,245,255,.22),0 -30px 60px -20px rgba(0,0,0,.6)}
