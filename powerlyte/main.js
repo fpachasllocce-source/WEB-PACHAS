@@ -6,43 +6,50 @@
 
   /* -----------------------------------------------------------------------
      DATOS DE PRODUCTO — editar aquí.
-     IMPORTANTE: los valores nutricionales son REFERENCIALES de maqueta.
-     Reemplazar con la ficha técnica / rotulado oficial antes de publicar.
-     `img`: ruta a la foto PNG transparente de cada botella (vacío = placeholder SVG).
+     `photo`: foto del sabor para la línea de sabores (vacío = placeholder).
      ----------------------------------------------------------------------- */
-  // Sabores vistos en los envases (625 ml). TODO confirmar nombre oficial de los sabores azul y morado.
   const FLAVORS = [
-    { id: 'tropical',  name: 'Tropical',        color: '#ff3b30', color2: '#ff9f6b', photo: 'assets/img/tropical-mano-cielo.webp',
+    { id: 'tropical',  name: 'Tropical',  color: '#ff3b30', color2: '#ff9f6b', photo: 'assets/img/tropical-mano-cielo.webp',
       desc: 'Frutas tropicales intensas, con un final fresco. El sabor rojo que se reconoce desde lejos.' },
-    { id: 'manzana',   name: 'Manzana',         color: '#4fd12a', color2: '#c6f56b', photo: 'assets/img/manzana-trofeos-padel.webp',
+    { id: 'manzana',   name: 'Manzana',   color: '#4fd12a', color2: '#c6f56b', photo: 'assets/img/manzana-trofeos-padel.webp',
       desc: 'Manzana verde, ácida y refrescante. La compañera de los torneos y las sesiones largas.' },
-    { id: 'mandarina', name: 'Mandarina',       color: '#ff8a00', color2: '#ffd166', photo: 'assets/img/mandarina-mundial-2026.webp',
+    { id: 'mandarina', name: 'Mandarina', color: '#ff8a00', color2: '#ffd166', photo: 'assets/img/mandarina-mundial-2026.webp',
       desc: 'Mandarina jugosa y luminosa. Para alentar, entrenar y aguantar el calor.' },
-    { id: 'azul',      name: 'Frambuesa azul',  color: '#38a3ff', color2: '#b5e0ff', photo: '',
-      desc: '[Confirmar nombre] Sabor frío y afrutado, ideal para después del entreno.' },
-    { id: 'uva',       name: 'Uva',             color: '#8b5cf6', color2: '#d6c8ff', photo: '',
-      desc: '[Confirmar nombre] Uva intensa con final limpio. Sabor clásico de hidratación.' },
+    { id: 'blueberry', name: 'Blueberry', color: '#3b8eea', color2: '#b5dcff', photo: 'assets/img/blueberry-splash.webp',
+      desc: 'Arándano azul, frío y afrutado. Para pasar de batería baja a volver a correr.' },
+    { id: 'uva',       name: 'Uva',       color: '#8b5cf6', color2: '#d6c8ff', photo: 'assets/img/uva-surf.webp',
+      desc: 'Uva intensa con final limpio. El sabor clásico de la hidratación, en la playa o en la cancha.' },
   ];
 
   const SIZES = [
     { id: '625', ml: 625, label: '625 ml' },
   ];
 
-  // Valores por 100 ml (REFERENCIALES salvo 0 azúcar / 0 calorías, que figuran en el envase).
-  const NUTRITION_100 = {
-    energia:   { name: 'Energía',          unit: 'kcal', v: 0,    vd: 2000, key: true, color: '#0a1224' },
-    grasas:    { name: 'Grasas totales',   unit: 'g',    v: 0 },
-    carbos:    { name: 'Carbohidratos',    unit: 'g',    v: 0 },
-    azucares:  { name: 'Azúcares',         unit: 'g',    v: 0,    vd: 50,   key: true, sub: true, color: 'var(--acc)',
-                 hint: 'Sin azúcar · endulzada con [edulcorante, confirmar].' },
-    proteinas: { name: 'Proteínas',        unit: 'g',    v: 0 },
-    sodio:     { name: 'Sodio',            unit: 'mg',   v: 40,   vd: 2300, key: true, color: '#0891b2', tag: 'Na⁺' },
-    potasio:   { name: 'Potasio',          unit: 'mg',   v: 35,   vd: 3500, key: true, color: '#d4a106', tag: 'K⁺' },
-    cloruro:   { name: 'Cloruro',          unit: 'mg',   v: 55,   tag: 'Cl⁻' },
-    vitb6:     { name: 'Vitamina B6',      unit: 'mg',   v: 0.1,  vd: 1.7,  color: '#7c3aed' },
-    vitb12:    { name: 'Vitamina B12',     unit: 'µg',   v: 0.2,  vd: 2.4,  color: '#7c3aed' },
-  };
-  const FLAVOR_OVERRIDES = { /* ej.: tropical: { azucares: 2.6, energia: 11 } */ };
+  // Rotulado oficial (sabor Tropical). Valores POR PORCIÓN de 250 ml; `pv` = % valor diario de la etiqueta.
+  const SERVING_ML = 250;
+  const NUTRITION = [
+    { k: 'energia',   name: 'Energía',               unit: 'kcal', v: 0, key: true },
+    { k: 'grasas',    name: 'Grasas totales',        unit: 'g',  v: 0,    pv: 0 },
+    { k: 'saturadas', name: 'Grasas saturadas',      unit: 'g',  v: 0,    pv: 0, sub: true },
+    { k: 'carbos',    name: 'Carbohidratos totales', unit: 'g',  v: 0,    pv: 0 },
+    { k: 'azucares',  name: 'Azúcares añadidos',     unit: 'g',  v: 0,    pv: 0, sub: true, key: true },
+    { k: 'fibra',     name: 'Fibra dietética',       unit: 'g',  v: 0,    pv: 0, sub: true },
+    { k: 'proteina',  name: 'Proteína',              unit: 'g',  v: 0,    pv: 0 },
+    { group: 'Electrolitos' },
+    { k: 'sodio',     name: 'Sodio',    tag: 'Na⁺',  unit: 'mg', v: 110,  pv: 7, key: true, color: '#0891b2' },
+    { k: 'cloruro',   name: 'Cloruro',  tag: 'Cl⁻',  unit: 'mg', v: 90,   pv: 0 },
+    { k: 'potasio',   name: 'Potasio',  tag: 'K⁺',   unit: 'mg', v: 40,   pv: 0, key: true },
+    { k: 'calcio',    name: 'Calcio',   tag: 'Ca²⁺', unit: 'mg', v: 12,   pv: 0 },
+    { k: 'magnesio',  name: 'Magnesio', tag: 'Mg²⁺', unit: 'mg', v: 2,    pv: 0 },
+    { group: 'Vitaminas del grupo B' },
+    { k: 'b3',  name: 'Vitamina B3',  unit: 'mg', v: 12.5, pv: 100, color: '#7c3aed' },
+    { k: 'b5',  name: 'Vitamina B5',  unit: 'mg', v: 4.2,  pv: 100, color: '#7c3aed' },
+    { k: 'b6',  name: 'Vitamina B6',  unit: 'mg', v: 1.25, pv: 100, color: '#7c3aed' },
+    { k: 'b2',  name: 'Vitamina B2',  unit: 'mg', v: 0.8,  pv: 79,  color: '#7c3aed' },
+    { k: 'b12', name: 'Vitamina B12', unit: 'µg', v: 2,    pv: 100, color: '#7c3aed' },
+  ];
+  // Si algún sabor tuviera valores distintos: { uva: { sodio: 105 } } (por porción de 250 ml).
+  const FLAVOR_OVERRIDES = {};
 
   /* ----------------------------------------------------------------------- */
   const $  = (s, c = document) => c.querySelector(s);
@@ -190,7 +197,7 @@
   new IntersectionObserver(([e]) => { heroVisible = e.isIntersecting; }).observe($('[data-hero]'));
 
   /* ---------- Flavor lab ---------- */
-  const state = { flavor: FLAVORS[0], size: SIZES[0], basis: 'bottle' };
+  const state = { flavor: FLAVORS[0], size: SIZES[0], basis: 'serving' };
   const chipsWrap = $('[data-flavor-chips]'), segWrap = $('[data-size-seg]'), rowsWrap = $('[data-nrows]');
   const labBottle = $('[data-lab-bottle]'), bigName = $('[data-flavor-big]');
 
@@ -198,11 +205,13 @@
     `<button class="chip" role="radio" aria-checked="${i === 0}" data-flavor="${f.id}" style="--c:${f.color}"><i></i>${f.name}</button>`).join('');
   segWrap.innerHTML = SIZES.map(s =>
     `<button role="radio" aria-checked="${s === state.size}" data-size="${s.id}">${s.label}</button>`).join('');
-  rowsWrap.innerHTML = Object.entries(NUTRITION_100).map(([k, n]) => `
-    <div class="nrow${n.key ? ' nrow--key' : ''}${n.sub ? ' nrow--sub' : ''}" data-row="${k}">
+  rowsWrap.innerHTML = `<div class="nrow nrow--head mono"><span></span><span>Cantidad</span><span>% VD*</span></div>` +
+    NUTRITION.map(n => n.group ? `<div class="nrow nrow--group mono">${n.group}</div>` : `
+    <div class="nrow${n.key ? ' nrow--key' : ''}${n.sub ? ' nrow--sub' : ''}" data-row="${n.k}">
       <span class="nrow__name">${n.name}${n.tag ? `<small>${n.tag}</small>` : ''}</span>
       <span class="nrow__val" data-val>—</span>
-      ${n.vd ? `<span class="nrow__bar" style="--rc:${n.color}"><i></i></span><span class="nrow__hint" data-hint></span>` : ''}
+      <span class="nrow__pv" data-pv>${n.pv === undefined ? '' : '—'}</span>
+      ${n.pv ? `<span class="nrow__bar" style="--rc:${n.color || 'var(--acc)'}"><i></i></span>` : ''}
     </div>`).join('');
 
   $('[data-lineup]').innerHTML = FLAVORS.map(f => `
@@ -212,27 +221,26 @@
       <span class="lcard__foot mono"><span>${SIZES.map(s => s.label).join(' · ')}</span><i class="arrow"></i></span>
     </button>`).join('');
 
-  const fmt = (v, unit) => {
-    const d = v === 0 ? 0 : v < 1 ? 2 : v < 10 ? 1 : 0;
-    const t = v.toFixed(d);
-    return `${t.includes('.') ? t.replace(/\.?0+$/, '') : t} ${unit}`;
-  };
+  const fmt = (v, unit) => `${String(+v.toFixed(2))} ${unit}`;
+
 
   function renderNutrition() {
-    const ml = state.basis === 'bottle' ? state.size.ml : 100;
+    const ml = state.basis === 'bottle' ? state.size.ml : state.basis === '100' ? 100 : SERVING_ML;
+    const f = ml / SERVING_ML;
     const ov = FLAVOR_OVERRIDES[state.flavor.id] || {};
-    $('[data-serving]').textContent = state.basis === 'bottle' ? `1 botella (${state.size.ml} ml)` : '100 ml';
-    Object.entries(NUTRITION_100).forEach(([k, n]) => {
-      const row = $(`[data-row="${k}"]`, rowsWrap);
-      const val = (ov[k] ?? n.v) * ml / 100;
-      $('[data-val]', row).textContent = fmt(val, n.unit);
-      if (n.vd) {
-        const pct = val / n.vd * 100;
-        $('.nrow__bar i', row).style.width = (pct === 0 ? 0 : clamp(pct, 1.5, 100)) + '%';
-        $('[data-hint]', row).textContent = `${pct === 0 ? '0' : pct < 1 ? '<1' : Math.round(pct)}% del valor diario de referencia${n.hint ? ' · ' + n.hint : ''}`;
-      }
+    $('[data-serving]').textContent = state.basis === 'bottle' ? `1 botella (${state.size.ml} ml · ${state.size.ml / SERVING_ML} porciones)`
+      : state.basis === '100' ? '100 ml' : `1 porción (${SERVING_ML} ml)`;
+    NUTRITION.forEach(n => {
+      if (n.group) return;
+      const row = $(`[data-row="${n.k}"]`, rowsWrap);
+      $('[data-val]', row).textContent = fmt((ov[n.k] ?? n.v) * f, n.unit);
+      if (n.pv === undefined) return;
+      const pct = n.pv * f;
+      $('[data-pv]', row).textContent = `${Math.round(pct)}%`;
+      if (n.pv) $('.nrow__bar i', row).style.width = clamp(pct, 1.5, 100) + '%';
     });
   }
+
 
   function applyTheme(f) {
     root.style.setProperty('--acc', f.color);

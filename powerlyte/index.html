@@ -66,7 +66,7 @@
   <div class="hero__glow" aria-hidden="true"></div>
 
   <div class="hero__meta mono">
-    <span>Na⁺ · K⁺ · Cl⁻ · Vit. B</span>
+    <span>Na⁺ · K⁺ · Cl⁻ · Ca²⁺ · Mg²⁺ · Vit. B</span>
     <span class="hide-sm">Lima, Perú — 12°02′S</span>
     <span>Rehidratación deportiva</span>
   </div>
@@ -127,7 +127,7 @@
   <header class="sec-head">
     <span class="sec-num mono">01 — Productos y sabores</span>
     <h2 class="sec-title" data-split-lines>Elige tu sabor.<br><em>Lee todo lo que lleva.</em></h2>
-    <p class="sec-intro reveal">Aquí no hay letra pequeña. Cada sabor tiene su tabla completa: sodio, potasio, azúcares, calorías y vitaminas, por botella y por 100&nbsp;ml.</p>
+    <p class="sec-intro reveal">Aquí no hay letra pequeña. La tabla completa del envase: 5 electrolitos, 5 vitaminas del grupo B, 0 azúcar y 0 calorías. Por porción, por botella y por 100&nbsp;ml.</p>
   </header>
 
   <div class="lab">
@@ -182,19 +182,25 @@
         <div class="nlabel__head">
           <h3>Información nutricional</h3>
           <div class="seg seg--mini" role="radiogroup" aria-label="Base de cálculo">
-            <button role="radio" aria-checked="true" data-basis="bottle">Por botella</button>
-            <button role="radio" aria-checked="false" data-basis="100">Por 100 ml</button>
+            <button role="radio" aria-checked="true" data-basis="serving">Por porción</button>
+            <button role="radio" aria-checked="false" data-basis="bottle">Por botella</button>
+            <button role="radio" aria-checked="false" data-basis="100">100 ml</button>
           </div>
         </div>
-        <div class="nlabel__serving mono">Porción: <span data-serving>1 botella (625 ml)</span></div>
+        <div class="nlabel__serving mono">Tamaño: <span data-serving>1 porción (250 ml)</span></div>
         <div class="nlabel__rows" data-nrows></div>
-        <p class="nlabel__foot mono">* Valores referenciales de maqueta. Reemplazar con la ficha técnica y el rotulado oficial aprobado (DIGESA) antes de publicar.</p>
+        <p class="nlabel__foot mono">* % del valor diario por porción según el rotulado, basado en una dieta de 2000 kcal (Codex/FDA). Datos del envase sabor Tropical, 625 ml (2.5 porciones).</p>
+        <details class="nlabel__ingr">
+          <summary>Ingredientes</summary>
+          <p>Agua carbonatada, reguladores de acidez (SIN 330, SIN 331(iii)), saborizante, cloruro de sodio, fosfato monopotásico, lactato de calcio, citrato de magnesio, edulcorantes (SIN 951, SIN 950), colorantes, sustancia conservadora (SIN 211), vitamina B3, vitamina B5, vitamina B6, vitamina B2, vitamina B12.</p>
+          <p class="mono">Bebida hidratante con adición de electrolitos. Refrigerar una vez abierto. Producto peruano.</p>
+        </details>
       </div>
 
       <ul class="pillars">
         <li><b>0 azúcar</b><span>Te hidratas sin sumar azúcar a tu día, ni antes ni después del entreno.</span></li>
         <li><b>0 calorías</b><span>Sabor intenso sin calorías. Para tomarla cuando la necesites.</span></li>
-        <li><b>+ Vitamina B y antioxidantes</b><span>Un extra para tu energía y tu recuperación.</span></li>
+        <li><b>+ 5 vitaminas B</b><span>100% del valor diario de B3, B5, B6 y B12 en cada porción de 250 ml.</span></li>
       </ul>
     </div>
   </div>
@@ -429,25 +435,43 @@
       <div class="ioncard__sym">Na<sup>+</sup></div>
       <h3>Sodio</h3>
       <p>El electrolito que más se pierde con el sudor. Mantiene el equilibrio de líquidos y ayuda a que el agua se absorba y se quede en el cuerpo.</p>
+      <span class="ioncard__dose mono">110 mg por porción</span>
       <span class="ioncard__tag mono">Equilibrio hídrico · calambres</span>
     </article>
     <article class="ioncard reveal" style="--c:#ffd23f">
       <div class="ioncard__sym">K<sup>+</sup></div>
       <h3>Potasio</h3>
       <p>Clave en la contracción muscular y en la transmisión nerviosa. Trabaja en equipo con el sodio dentro y fuera de las células.</p>
+      <span class="ioncard__dose mono">40 mg por porción</span>
       <span class="ioncard__tag mono">Músculo · nervios</span>
     </article>
     <article class="ioncard reveal" style="--c:#a78bfa">
       <div class="ioncard__sym">Cl<sup>−</sup></div>
       <h3>Cloruro</h3>
       <p>Acompaña al sodio y regula el balance de líquidos y el pH de la sangre.</p>
+      <span class="ioncard__dose mono">90 mg por porción</span>
       <span class="ioncard__tag mono">Balance de líquidos</span>
     </article>
+    <article class="ioncard reveal" style="--c:#4fd12a">
+      <div class="ioncard__sym">Ca<sup>2+</sup></div>
+      <h3>Calcio</h3>
+      <p>Participa en la contracción de los músculos y en la transmisión de los impulsos nerviosos.</p>
+      <span class="ioncard__dose mono">12 mg por porción</span>
+      <span class="ioncard__tag mono">Músculo · huesos</span>
+    </article>
+    <article class="ioncard reveal" style="--c:#ff9f1c">
+      <div class="ioncard__sym">Mg<sup>2+</sup></div>
+      <h3>Magnesio</h3>
+      <p>Ayuda a la función muscular y nerviosa, y participa en la producción de energía.</p>
+      <span class="ioncard__dose mono">2 mg por porción</span>
+      <span class="ioncard__tag mono">Energía · músculo</span>
+    </article>
     <article class="ioncard reveal" style="--c:#ff4d6d">
-      <div class="ioncard__sym">B<sup>+</sup></div>
+      <div class="ioncard__sym">B<sup>×5</sup></div>
       <h3>Vitaminas B</h3>
-      <p>No son electrolitos, pero ayudan a tu cuerpo a transformar lo que comes en energía. Powerlyte además suma antioxidantes.</p>
-      <span class="ioncard__tag mono">Energía · antioxidantes</span>
+      <p>B2, B3, B5, B6 y B12. No son electrolitos: ayudan a tu cuerpo a transformar lo que comes en energía.</p>
+      <span class="ioncard__dose mono">100% VD de B3, B5, B6 y B12 por porción</span>
+      <span class="ioncard__tag mono">Energía · metabolismo</span>
     </article>
   </div>
 
@@ -494,7 +518,7 @@
   <div class="faq">
     <h3 class="faq__title">Preguntas frecuentes</h3>
     <details><summary>¿Es lo mismo que un suero de rehidratación oral?</summary><p>No. Powerlyte es una bebida hidratante para actividad física y el día a día. Ante un cuadro de deshidratación por enfermedad (diarrea, vómitos, fiebre) sigue la indicación de tu médico.</p></details>
-    <details><summary>¿Tiene azúcar o calorías?</summary><p>No. Powerlyte tiene 0 azúcar y 0 calorías. La tabla completa por botella y por 100 ml está en la sección Productos. [Confirmar edulcorantes con la ficha técnica.]</p></details>
+    <details><summary>¿Tiene azúcar o calorías?</summary><p>No. Powerlyte tiene 0 azúcar y 0 calorías. Está endulzada con edulcorantes (SIN 951 y SIN 950) y su tabla completa, por porción, por botella y por 100 ml, está en la sección Productos.</p></details>
     <details><summary>¿La pueden tomar niños?</summary><p>[Respuesta a validar con el especialista de la marca y el rotulado oficial.]</p></details>
     <details><summary>¿Puedo tomarla si no hago deporte?</summary><p>Sí, en días de calor o cuando pierdes líquidos. Si tienes hipertensión o alguna condición renal, consulta antes con tu médico por su contenido de sodio y potasio.</p></details>
     <details><summary>¿Cuántas botellas puedo tomar al día?</summary><p>Depende de cuánto sudes. Usa la calculadora de arriba como guía y ajusta según tu actividad.</p></details>
@@ -543,7 +567,7 @@
       <a href="#">Aviso legal</a><a href="#">Privacidad</a><a href="#">Libro de reclamaciones</a><a href="#">Contacto</a>
     </nav>
   </div>
-  <p class="footer__legal mono">Este producto no es un medicamento. Mantén una alimentación variada y un estilo de vida activo. Registro sanitario: [N.º DIGESA]. © <span data-year></span> Powerlyte.</p>
+  <p class="footer__legal mono">Este producto no es un medicamento. Mantén una alimentación variada y un estilo de vida activo. Elaborado por Iberoamericana de Bebidas S.A.C. · R.S. P2804725N/NAIEDE · Producto peruano. © <span data-year></span> Powerlyte.</p>
 </footer>
 
 <script src="main.js" defer></script>

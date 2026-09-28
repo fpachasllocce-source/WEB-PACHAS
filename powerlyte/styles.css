@@ -243,7 +243,7 @@ a:hover .arrow{transform:translateX(5px)}
 .nlabel__head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-bottom:12px;border-bottom:8px solid var(--ink)}
 .nlabel__head h3{margin:0;font-size:22px;font-weight:900;font-stretch:112%;letter-spacing:-.02em}
 .nlabel__serving{padding:10px 0;border-bottom:1px solid var(--line-ink);color:var(--text-ink-dim);text-transform:none}
-.nrow{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:13px 0;border-bottom:1px solid var(--line-ink);align-items:baseline}
+.nrow{display:grid;grid-template-columns:1fr auto 52px;gap:4px 12px;padding:10px 0;border-bottom:1px solid var(--line-ink);align-items:baseline}
 .nrow--key .nrow__name{font-weight:800}
 .nrow__name{font-weight:600}
 .nrow__name small{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;color:var(--text-ink-dim);margin-left:8px;text-transform:uppercase}
@@ -346,7 +346,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
    ========================================================================= */
 .science{background:var(--paper);color:var(--text-ink);padding:clamp(90px,11vw,160px) var(--pad);position:relative;z-index:5;border-radius:var(--radius) var(--radius) 0 0;margin-top:-28px}
 .science .sec-intro{color:var(--text-ink-dim)}
-.ions{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.ions{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .ioncard{--c:var(--ice);position:relative;background:#fff;border:1px solid var(--line-ink);border-radius:24px;padding:26px;display:flex;flex-direction:column;gap:12px;min-height:360px;overflow:hidden;transition:transform .6s var(--ease),background .5s,color .5s}
 .ioncard::before{content:"";position:absolute;inset:auto -30% -60% auto;width:120%;aspect-ratio:1;border-radius:50%;background:var(--c);opacity:.12;transition:transform .8s var(--ease),opacity .5s}
 .ioncard:hover{transform:translateY(-8px);background:var(--ink);color:#fff}
@@ -529,3 +529,24 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 .club__info em{justify-self:start;margin-top:10px;font-style:normal;padding:6px 12px;border-radius:999px;background:var(--club);color:var(--ink);font-size:10px}
 @media (max-width:900px){.clubs__list{grid-template-columns:1fr 1fr}.clubs__list .club:last-child{grid-column:1/-1}.clubs__list .club:last-child .club__img{aspect-ratio:16/10}}
 @media (max-width:560px){.clubs__list{grid-template-columns:1fr}.clubs__list .club:last-child .club__img{aspect-ratio:5/6}}
+
+/* ---------- rotulado real ---------- */
+.nrow__pv{font-family:var(--f-mono);font-size:13px;text-align:right;color:var(--text-ink-dim);font-variant-numeric:tabular-nums}
+.nrow--key .nrow__pv{color:var(--text-ink);font-weight:500}
+.nrow--head{padding:8px 0 6px;font-size:10px;color:var(--text-ink-dim)}
+.nrow--head span:nth-child(3){text-align:right}
+.nrow--group{display:block;padding:14px 0 6px;font-size:10px;color:var(--acc);border-bottom:2px solid var(--ink)}
+.nrow__bar{height:4px}
+.nlabel__ingr{margin-top:10px;border-top:1px solid var(--line-ink);padding-top:10px}
+.nlabel__ingr summary{cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between}
+.nlabel__ingr summary::-webkit-details-marker{display:none}
+.nlabel__ingr summary::after{content:"+";font-family:var(--f-mono)}
+.nlabel__ingr[open] summary::after{content:"−"}
+.nlabel__ingr p{margin:8px 0 0;font-size:13px;color:var(--text-ink-dim);line-height:1.5}
+.nlabel__ingr p.mono{font-size:10px;text-transform:none;letter-spacing:.02em}
+.ioncard{min-height:320px}
+.ioncard__dose{position:relative;align-self:start;padding:5px 10px;border-radius:999px;border:1px solid var(--c);font-size:10px;color:var(--text-ink)}
+.ioncard:hover .ioncard__dose{color:#fff}
+.seg--mini{flex-wrap:wrap}
+@media (max-width:1000px){.ions{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.ions{grid-template-columns:1fr}.ioncard{min-height:0}}
