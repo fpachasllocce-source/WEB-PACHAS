@@ -103,7 +103,7 @@
 </IfModule>
 
 # ----- Mis Finanzas: nunca servir archivos de base de datos -----
-<FilesMatch "\.(sqlite|sqlite-wal|sqlite-shm|db)$">
+<FilesMatch "\.(sqlite|sqlite-wal|sqlite-shm|db|log)(\.gz)?$|\.json\.gz$">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>

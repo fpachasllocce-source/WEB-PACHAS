@@ -48,12 +48,22 @@
     catch (e) { throw Object.assign(new Error('No hay conexión. Revisa tu internet e inténtalo de nuevo.'), { status: 0 }); }
     let json = {};
     try { json = await res.json(); } catch (e) {}
-    if (!res.ok) throw Object.assign(new Error(json.error || 'Algo salió mal. Inténtalo de nuevo.'), { status: res.status });
+    if (!res.ok) throw Object.assign(new Error(json.error || 'Algo salió mal. Inténtalo de nuevo.'), { status: res.status, body: json });
     return json;
   }
 
   // Saving: every change is queued and sent to the server shortly after.
+  // `rev` is the server revision our data is based on and `base` a copy of that
+  // server data. If another device saved in between, the server answers 409 and
+  // we merge (base → ours, base → theirs) instead of overwriting anything.
   let saveTimer = null, saving = false, dirty = false;
+  let rev = 0, base = emptyState();
+  const clone = (o) => JSON.parse(JSON.stringify(o));
+  function adopt(data, newRev) {
+    state = Object.assign(emptyState(), data || {});
+    base = clone(state);
+    rev = newRev || 0;
+  }
   function save() {
     dirty = true;
     setSync('saving');
@@ -63,19 +73,70 @@
   async function flush() {
     if (saving || !dirty || !user) return;
     saving = true; dirty = false;
+    const sent = clone(state);
     let retryIn = 0;
     try {
-      await api('save', { data: state });
+      const res = await api('save', { data: sent, baseRev: rev });
+      rev = res.rev;
+      base = sent;
     } catch (e) {
       dirty = true;
-      setSync('error', e.message);
       if (e.status === 401) { saving = false; return sessionExpired(); }
-      retryIn = 5000;
+      if (e.status === 409 && e.body) {
+        // edits made while this request was in flight are part of `state` and survive the merge
+        const theirs = Object.assign(emptyState(), e.body.data || {});
+        state = mergeState(base, state, theirs);
+        base = clone(theirs);
+        rev = e.body.rev;
+        render();
+        toast('Se combinaron cambios hechos en otro dispositivo');
+      } else {
+        setSync('error', e.message);
+        retryIn = 5000;
+      }
     }
     saving = false;
-    if (dirty) { clearTimeout(saveTimer); saveTimer = setTimeout(flush, retryIn || 300); }
+    if (dirty) { clearTimeout(saveTimer); saveTimer = setTimeout(flush, retryIn || 50); }
     else setSync('ok');
   }
+
+  // Three-way merge of lists of {id,…}: keeps additions from both sides, applies
+  // deletions from both sides, and when both edited the same item keeps ours.
+  // An item deleted on one side but edited on the other is kept (never lose data).
+  function mergeList(b, mine, theirs) {
+    const key = (x) => JSON.stringify(x);
+    const B = new Map((b || []).map((x) => [x.id, x]));
+    const M = new Map((mine || []).map((x) => [x.id, x]));
+    const T = new Map((theirs || []).map((x) => [x.id, x]));
+    const ids = [...T.keys(), ...[...M.keys()].filter((id) => !T.has(id))];
+    const out = [];
+    for (const id of ids) {
+      const inB = B.has(id), m = M.get(id), t = T.get(id);
+      const mChanged = m && (!inB || key(m) !== key(B.get(id)));
+      const tChanged = t && (!inB || key(t) !== key(B.get(id)));
+      if (inB && !m) { if (tChanged) out.push(t); continue; }   // we deleted it
+      if (inB && !t) { if (mChanged) out.push(m); continue; }   // they deleted it
+      out.push(mChanged ? m : (t || m));
+    }
+    return out;
+  }
+  function mergeState(b, mine, theirs) {
+    return {
+      currency: mine.currency !== b.currency ? mine.currency : theirs.currency,
+      movements: mergeList(b.movements, mine.movements, theirs.movements),
+      fixed: mergeList(b.fixed, mine.fixed, theirs.fixed),
+      appliedWeeks: Object.assign({}, theirs.appliedWeeks, mine.appliedWeeks),
+    };
+  }
+
+  // Coming back to the tab: pick up what was saved from another device
+  document.addEventListener('visibilitychange', async () => {
+    if (document.hidden || !user || dirty || saving) return;
+    try {
+      const res = await api('data');
+      if (res.rev > rev && !dirty && !saving) { adopt(res.data, res.rev); render(); }
+    } catch (e) { if (e.status === 401) sessionExpired(); }
+  });
   function setSync(st, msg) {
     const el = document.getElementById('syncStatus');
     if (!el) return;
@@ -482,6 +543,7 @@
   function fixedRow(f) {
     const div = document.createElement('div');
     div.className = 'fixed-row';
+    if (f.id) div.dataset.id = f.id; // keep ids stable so edits merge across devices
     div.innerHTML = '<input type="text" placeholder="Nombre (ej. Alquiler)" maxlength="40" value="' + esc(f.name || '') + '" aria-label="Nombre">' +
       '<input type="number" placeholder="Monto" step="0.01" min="0" value="' + (f.amount || '') + '" aria-label="Monto">' +
       '<select aria-label="Frecuencia"><option value="mensual"' + (f.freq !== 'semanal' ? ' selected' : '') + '>Mensual</option><option value="semanal"' + (f.freq === 'semanal' ? ' selected' : '') + '>Semanal</option></select>' +
@@ -500,7 +562,7 @@
     e.preventDefault();
     state.fixed = $$('.fixed-row', $('#fixedRows')).map((r) => {
       const [n, a] = r.querySelectorAll('input');
-      return { id: uid(), name: n.value.trim(), amount: round2(parseFloat(a.value)), freq: r.querySelector('select').value };
+      return { id: r.dataset.id || uid(), name: n.value.trim(), amount: round2(parseFloat(a.value)), freq: r.querySelector('select').value };
     }).filter((f) => f.name && f.amount > 0);
     save(); fixedModal.close(); render();
     toast('Gastos fijos guardados');
@@ -673,7 +735,7 @@
   async function enterApp(u) {
     user = u;
     const res = await api('data');
-    state = Object.assign(emptyState(), res.data || {});
+    adopt(res.data, res.rev);
     // Offer to bring over data saved in this browser by the old, account-less version
     if (!res.data) {
       let legacy = null;
@@ -695,7 +757,19 @@
     weekStart = mondayOf(new Date());
     render();
     setSync('ok');
+    updateVerifyBanner();
   }
+  function updateVerifyBanner() {
+    $('#verifyBanner').hidden = !user || user.verified !== false;
+    $('#verifyEmail').textContent = user ? user.email : '';
+  }
+  $('#resendVerify').addEventListener('click', async (e) => {
+    const b = e.target;
+    b.disabled = true;
+    try { await api('resend_verify', {}); toast('Te enviamos otro correo de confirmación'); }
+    catch (err) { toast(err.message); }
+    finally { b.disabled = false; }
+  });
   function sessionExpired() {
     user = null;
     toast('Tu sesión terminó. Vuelve a iniciar sesión.');
@@ -709,10 +783,13 @@
 
   function switchAuthTab(tab) {
     $$('[role=tab][data-auth-tab]').forEach((b) => b.setAttribute('aria-selected', b.dataset.authTab === tab ? 'true' : 'false'));
-    $('#loginForm').hidden = tab !== 'login';
-    $('#registerForm').hidden = tab !== 'register';
+    $('#authTabs').hidden = tab !== 'login' && tab !== 'register';
+    const forms = { login: '#loginForm', register: '#registerForm', forgot: '#forgotForm', reset: '#resetForm' };
+    Object.entries(forms).forEach(([k, sel]) => ($(sel).hidden = k !== tab));
     $$('.form-error', authView).forEach((x) => (x.hidden = true));
-    const f = tab === 'login' ? $('#loginForm') : $('#registerForm');
+    $('#forgotForm .form-ok').hidden = true;
+    $('#forgotForm [type=submit]').hidden = false;
+    const f = $(forms[tab]);
     setTimeout(() => { const i = f.querySelector('input'); if (i && innerWidth > 860) i.focus(); }, 30);
   }
   authView.addEventListener('click', (e) => {
@@ -783,6 +860,32 @@
     $('.strength', e.target.form).dataset.score = v ? Math.max(1, score) : 0;
   });
 
+  $('#forgotForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = e.target;
+    const email = f.email.value.trim();
+    if (!validEmail(email)) return formError(f, 'Escribe un correo electrónico válido.');
+    submitting(f, async () => {
+      await api('forgot', { email });
+      f.querySelector('.form-ok').hidden = false;
+      f.querySelector('[type=submit]').hidden = true;
+    });
+  });
+
+  let resetToken = '';
+  $('#resetForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = e.target;
+    if (f.password.value.length < 8) return formError(f, 'La contraseña debe tener al menos 8 caracteres.');
+    if (f.password.value !== f.password2.value) return formError(f, 'Las contraseñas no coinciden.');
+    submitting(f, async () => {
+      const res = await api('reset', { token: resetToken, password: f.password.value });
+      f.reset();
+      await enterApp(res.user);
+      toast('Contraseña cambiada. ¡Bienvenido de nuevo!');
+    });
+  });
+
   function openAccountModal(sel) {
     const d = $(sel);
     d.querySelector('form').reset();
@@ -811,11 +914,23 @@
   });
 
   async function boot() {
+    // Links from emails: ?reset=… (new password) and ?verify=… (confirm email)
+    const params = new URLSearchParams(location.search);
+    const verifyToken = params.get('verify');
+    resetToken = params.get('reset') || '';
+    if (verifyToken || resetToken) history.replaceState(null, '', location.pathname); // keep tokens out of history
     try {
+      let verifyMsg = '';
+      if (verifyToken) {
+        try { await api('verify', { token: verifyToken }); verifyMsg = '✓ ¡Correo confirmado!'; }
+        catch (e) { verifyMsg = e.message; }
+      }
       const me = await api('me');
       $('#inviteField').hidden = !me.inviteRequired;
-      if (me.user) await enterApp(me.user);
+      if (resetToken) showAuth('reset');
+      else if (me.user) await enterApp(me.user);
       else showAuth('login');
+      if (verifyMsg) toast(verifyMsg);
     } catch (e) {
       showAuth('login');
       formError($('#loginForm'), e.message);

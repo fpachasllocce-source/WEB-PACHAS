@@ -107,6 +107,7 @@ body {
 h1, h2, h3, p { margin: 0; }
 button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
+[hidden] { display: none !important; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .muted { color: var(--muted); font-size: 13px; }
 .num, .tab-num { font-variant-numeric: tabular-nums; }
@@ -477,3 +478,19 @@ body:not(.is-loading) .loader { display: none; }
 .sync[data-state="error"] i { background: var(--bad); }
 @keyframes pulse { 50% { opacity: .35; } }
 @media (max-width: 560px) { .sync span { display: none; } .brand small { display: none; } }
+
+/* ---------- Recuperación de contraseña y avisos ---------- */
+.link-btn { justify-self: end; margin-top: -8px; border: 0; background: none; padding: 0; font-size: 13px; font-weight: 600; color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; }
+.link-btn:hover { color: var(--ink); }
+.auth__form--solo { margin-top: 4px; }
+.form-ok { font-size: 14px; color: var(--ink-2); background: var(--good-soft); border-radius: 12px; padding: 14px; }
+.form-ok strong { color: var(--ink); display: block; margin-bottom: 4px; }
+.banner {
+  display: flex; align-items: center; gap: 12px; margin-top: 20px; padding: 12px 14px;
+  background: var(--surface); border: 1px solid var(--line-strong); border-radius: 14px; font-size: 14px; color: var(--ink-2);
+}
+.banner[hidden] { display: none; }
+.banner p { flex: 1; min-width: 0; }
+.banner strong { color: var(--ink); }
+.banner__icon { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: color-mix(in srgb, #fab219 22%, transparent); flex: none; }
+@media (max-width: 560px) { .banner { flex-wrap: wrap; } .banner .btn { width: 100%; } }

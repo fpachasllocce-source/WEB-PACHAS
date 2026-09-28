@@ -1,1 +1,4 @@
 gastos/api/data/*.sqlite*
+gastos/api/data/backups/
+gastos/api/data/*.log
+gastos/api/config.local.php

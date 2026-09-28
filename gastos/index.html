@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="styles.css?v=20260928b">
+<link rel="stylesheet" href="styles.css?v=20260928c">
 <script>
   try { var t = localStorage.getItem('fs-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
@@ -39,7 +39,7 @@
 
   <div class="auth__panel">
     <div class="auth__card">
-      <div class="tabs tabs--full" role="tablist">
+      <div class="tabs tabs--full" role="tablist" id="authTabs">
         <button role="tab" aria-selected="true" data-auth-tab="login">Iniciar sesión</button>
         <button role="tab" aria-selected="false" data-auth-tab="register">Crear cuenta</button>
       </div>
@@ -52,8 +52,9 @@
         <label class="field"><span>Correo electrónico</span>
           <input type="email" name="email" autocomplete="email" required placeholder="tu@correo.com"></label>
         <label class="field"><span>Contraseña</span>
-          <div class="pass-input"><input type="password" name="password" autocomplete="current-password" required placeholder="••••••••">
+          <div class="pass-input"><input type="password" name="password" autocomplete="current-password" required placeholder="Tu contraseña">
           <button type="button" class="pass-toggle" aria-label="Mostrar contraseña">Ver</button></div></label>
+        <button type="button" class="link-btn" data-auth-tab="forgot">¿Olvidaste tu contraseña?</button>
         <p class="form-error" role="alert" hidden></p>
         <button type="submit" class="btn btn--primary btn--lg">Ingresar</button>
         <p class="auth__switch">¿No tienes cuenta? <button type="button" data-auth-tab="register">Créala gratis</button></p>
@@ -79,6 +80,37 @@
         <p class="form-error" role="alert" hidden></p>
         <button type="submit" class="btn btn--primary btn--lg">Crear cuenta</button>
         <p class="auth__switch">¿Ya tienes cuenta? <button type="button" data-auth-tab="login">Inicia sesión</button></p>
+      </form>
+
+      <form id="forgotForm" class="auth__form auth__form--solo" novalidate hidden>
+        <div>
+          <h2>Recupera tu cuenta</h2>
+          <p class="muted">Escribe el correo con el que te registraste y te enviaremos un enlace para crear una nueva contraseña.</p>
+        </div>
+        <label class="field"><span>Correo electrónico</span>
+          <input type="email" name="email" autocomplete="email" required placeholder="tu@correo.com"></label>
+        <p class="form-error" role="alert" hidden></p>
+        <div class="form-ok" role="status" hidden>
+          <strong>📬 Revisa tu correo</strong>
+          <p>Si hay una cuenta con ese correo, te llegará un enlace en unos minutos. Vence en 1 hora. Mira también en la carpeta de spam.</p>
+        </div>
+        <button type="submit" class="btn btn--primary btn--lg">Enviar enlace</button>
+        <p class="auth__switch"><button type="button" data-auth-tab="login">← Volver a iniciar sesión</button></p>
+      </form>
+
+      <form id="resetForm" class="auth__form auth__form--solo" novalidate hidden>
+        <div>
+          <h2>Crea tu nueva contraseña</h2>
+          <p class="muted">Elige una contraseña que no uses en otros sitios.</p>
+        </div>
+        <label class="field"><span>Nueva contraseña</span>
+          <div class="pass-input"><input type="password" name="password" autocomplete="new-password" required minlength="8" placeholder="Mínimo 8 caracteres">
+          <button type="button" class="pass-toggle" aria-label="Mostrar contraseña">Ver</button></div></label>
+        <label class="field"><span>Repite la contraseña</span>
+          <input type="password" name="password2" autocomplete="new-password" required></label>
+        <p class="form-error" role="alert" hidden></p>
+        <button type="submit" class="btn btn--primary btn--lg">Guardar y entrar</button>
+        <p class="auth__switch"><button type="button" data-auth-tab="forgot">Pedir un enlace nuevo</button></p>
       </form>
     </div>
     <p class="footnote">Tu contraseña se guarda cifrada. Nadie más puede ver tus finanzas.</p>
@@ -143,6 +175,12 @@
 </header>
 
 <main class="wrap">
+
+  <div class="banner" id="verifyBanner" hidden>
+    <span class="banner__icon" aria-hidden="true">✉</span>
+    <p><strong>Confirma tu correo.</strong> Te enviamos un enlace a <span id="verifyEmail"></span>. Así podrás recuperar tu cuenta si olvidas la contraseña.</p>
+    <button class="btn btn--ghost btn--sm" id="resendVerify">Reenviar</button>
+  </div>
 
   <!-- Week navigation -->
   <section class="weekbar">
@@ -397,6 +435,6 @@
 <div class="tooltip" id="tooltip" role="status" hidden></div>
 <div class="toast" id="toast" role="status" hidden></div>
 
-<script src="app.js?v=20260928b"></script>
+<script src="app.js?v=20260928c"></script>
 </body>
 </html>

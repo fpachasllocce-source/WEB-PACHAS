@@ -1,6 +1,6 @@
 # Solo index.php es accesible desde internet
 Options -Indexes
-<FilesMatch "^config\.php$">
+<FilesMatch "^config(\.local)?\.php$">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>
@@ -9,3 +9,7 @@ Options -Indexes
     Deny from all
   </IfModule>
 </FilesMatch>
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^lib/ - [F,L]
+</IfModule>
