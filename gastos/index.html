@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mis Finanzas Semanales | Control de gastos</title>
+<meta name="description" content="Controla tus gastos semanales: gastos fijos, gastos hormiga, compras, ingresos y ganancias. Todo se guarda en tu navegador.">
+<meta name="theme-color" content="#0f1115">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="styles.css?v=20260928">
+<script>
+  try { var t = localStorage.getItem('fs-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar__inner">
+    <a class="brand" href="./">
+      <span class="brand__mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M4 17l5-5 4 4 7-8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span>Mis Finanzas<small>semanales</small></span>
+    </a>
+    <div class="topbar__actions">
+      <label class="select-mini" title="Moneda">
+        <span class="sr-only">Moneda</span>
+        <select id="currency">
+          <option value="PEN">S/ PEN</option>
+          <option value="USD">$ USD</option>
+          <option value="EUR">€ EUR</option>
+          <option value="MXN">$ MXN</option>
+          <option value="COP">$ COP</option>
+          <option value="CLP">$ CLP</option>
+          <option value="ARS">$ ARS</option>
+        </select>
+      </label>
+      <button class="icon-btn" id="themeToggle" aria-label="Cambiar tema" title="Cambiar tema">
+        <svg class="i-sun" viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg class="i-moon" viewBox="0 0 24 24" width="18" height="18"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="menu">
+        <button class="icon-btn" id="menuBtn" aria-haspopup="true" aria-expanded="false" aria-label="Más opciones">
+          <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="5" cy="12" r="1.8" fill="currentColor"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><circle cx="19" cy="12" r="1.8" fill="currentColor"/></svg>
+        </button>
+        <div class="menu__panel" id="menuPanel" hidden>
+          <button data-action="export-csv">Exportar semana (CSV)</button>
+          <button data-action="export-json">Copia de seguridad (JSON)</button>
+          <button data-action="import-json">Restaurar copia…</button>
+          <hr>
+          <button data-action="demo">Cargar datos de ejemplo</button>
+          <button data-action="reset" class="danger">Borrar todos los datos</button>
+        </div>
+      </div>
+      <input type="file" id="importFile" accept="application/json" hidden>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- Week navigation -->
+  <section class="weekbar">
+    <div>
+      <p class="eyebrow" id="weekEyebrow">Semana actual</p>
+      <h1 id="weekTitle">—</h1>
+    </div>
+    <div class="weekbar__nav">
+      <button class="btn btn--ghost" id="prevWeek" aria-label="Semana anterior">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="btn btn--ghost" id="todayWeek">Hoy</button>
+      <button class="btn btn--ghost" id="nextWeek" aria-label="Semana siguiente">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="btn btn--primary" id="addBtn">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        Nuevo movimiento
+      </button>
+    </div>
+  </section>
+
+  <!-- Hero: ganancia -->
+  <section class="hero card">
+    <div class="hero__main">
+      <p class="eyebrow">Ganancia de la semana</p>
+      <p class="hero__value" id="heroValue">—</p>
+      <p class="hero__sub" id="heroSub">—</p>
+      <div class="savebar" aria-hidden="true"><span id="saveFill"></span></div>
+      <p class="hero__meta" id="heroMeta">—</p>
+    </div>
+    <div class="hero__split">
+      <div>
+        <p class="eyebrow">Ingresos</p>
+        <p class="hero__num" id="heroIncome">—</p>
+      </div>
+      <div class="hero__minus" aria-hidden="true">−</div>
+      <div>
+        <p class="eyebrow">Gastos totales</p>
+        <p class="hero__num" id="heroExpense">—</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI tiles -->
+  <section class="kpis">
+    <article class="kpi" data-kind="ingreso">
+      <header><span class="kpi__icon">↗</span><h2>Ingresos semanales</h2></header>
+      <p class="kpi__value" id="kIngreso">—</p>
+      <p class="kpi__delta" id="dIngreso"></p>
+    </article>
+    <article class="kpi" data-kind="fijo">
+      <header><span class="kpi__icon kpi__swatch" style="--c:var(--s-fijo)"></span><h2>Gastos fijos</h2></header>
+      <p class="kpi__value" id="kFijo">—</p>
+      <p class="kpi__delta" id="dFijo"></p>
+    </article>
+    <article class="kpi" data-kind="hormiga">
+      <header><span class="kpi__icon kpi__swatch" style="--c:var(--s-hormiga)"></span><h2>Gastos hormiga</h2></header>
+      <p class="kpi__value" id="kHormiga">—</p>
+      <p class="kpi__delta" id="dHormiga"></p>
+    </article>
+    <article class="kpi" data-kind="compra">
+      <header><span class="kpi__icon kpi__swatch" style="--c:var(--s-compra)"></span><h2>Compras realizadas</h2></header>
+      <p class="kpi__value" id="kCompra">—</p>
+      <p class="kpi__delta" id="dCompra"></p>
+    </article>
+  </section>
+
+  <!-- Charts -->
+  <section class="grid-2">
+    <article class="card chart-card">
+      <header class="card__head">
+        <div>
+          <h2>Gastos por día</h2>
+          <p class="muted">Lunes a domingo, por tipo de gasto</p>
+        </div>
+        <ul class="legend">
+          <li><i style="--c:var(--s-fijo)"></i>Fijos</li>
+          <li><i style="--c:var(--s-hormiga)"></i>Hormiga</li>
+          <li><i style="--c:var(--s-compra)"></i>Compras</li>
+        </ul>
+      </header>
+      <div class="chart" id="dailyChart"></div>
+    </article>
+
+    <article class="card chart-card">
+      <header class="card__head">
+        <div>
+          <h2>¿A dónde se fue tu dinero?</h2>
+          <p class="muted">Reparto de los gastos de la semana</p>
+        </div>
+      </header>
+      <div id="splitChart"></div>
+      <div class="insight" id="antInsight"></div>
+    </article>
+  </section>
+
+  <section class="grid-2 grid-2--wide">
+    <article class="card chart-card">
+      <header class="card__head">
+        <div>
+          <h2>Ganancia de las últimas 8 semanas</h2>
+          <p class="muted">Ingresos menos gastos, semana a semana</p>
+        </div>
+      </header>
+      <div class="chart" id="trendChart"></div>
+    </article>
+
+    <article class="card">
+      <header class="card__head">
+        <div>
+          <h2>Gastos fijos</h2>
+          <p class="muted">Tus pagos que se repiten</p>
+        </div>
+        <button class="btn btn--ghost btn--sm" id="manageFixed">Editar</button>
+      </header>
+      <ul class="fixed-list" id="fixedList"></ul>
+      <button class="btn btn--soft btn--block" id="applyFixed">Cargar gastos fijos a esta semana</button>
+    </article>
+  </section>
+
+  <!-- Movements -->
+  <section class="card">
+    <header class="card__head card__head--wrap">
+      <div>
+        <h2>Movimientos de la semana</h2>
+        <p class="muted" id="movCount">—</p>
+      </div>
+      <div class="tabs" role="tablist" id="filterTabs">
+        <button role="tab" aria-selected="true" data-filter="all">Todos</button>
+        <button role="tab" aria-selected="false" data-filter="ingreso">Ingresos</button>
+        <button role="tab" aria-selected="false" data-filter="fijo">Fijos</button>
+        <button role="tab" aria-selected="false" data-filter="hormiga">Hormiga</button>
+        <button role="tab" aria-selected="false" data-filter="compra">Compras</button>
+      </div>
+    </header>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>Fecha</th><th>Concepto</th><th>Tipo</th><th class="num">Monto</th><th><span class="sr-only">Acciones</span></th></tr>
+        </thead>
+        <tbody id="movBody"></tbody>
+      </table>
+    </div>
+    <div class="empty" id="emptyState" hidden>
+      <p><strong>Aún no hay movimientos esta semana.</strong></p>
+      <p class="muted">Registra tu primer ingreso o gasto, o carga datos de ejemplo para ver cómo funciona.</p>
+      <div class="empty__actions">
+        <button class="btn btn--primary" data-open-add>Nuevo movimiento</button>
+        <button class="btn btn--ghost" data-action="demo">Ver ejemplo</button>
+      </div>
+    </div>
+  </section>
+
+  <p class="footnote">Tus datos se guardan solo en este navegador. Haz una copia de seguridad desde el menú <strong>⋯</strong> para no perderlos.</p>
+</main>
+
+<!-- Add / edit movement -->
+<dialog class="modal" id="movModal">
+  <form method="dialog" id="movForm">
+    <header class="modal__head">
+      <h2 id="movModalTitle">Nuevo movimiento</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Cerrar">✕</button>
+    </header>
+    <fieldset class="kind-picker">
+      <legend class="sr-only">Tipo</legend>
+      <label><input type="radio" name="kind" value="ingreso"><span><b>↗</b>Ingreso</span></label>
+      <label><input type="radio" name="kind" value="fijo"><span><i style="--c:var(--s-fijo)"></i>Gasto fijo</span></label>
+      <label><input type="radio" name="kind" value="hormiga" checked><span><i style="--c:var(--s-hormiga)"></i>Hormiga</span></label>
+      <label><input type="radio" name="kind" value="compra"><span><i style="--c:var(--s-compra)"></i>Compra</span></label>
+    </fieldset>
+    <label class="field">
+      <span>Monto</span>
+      <div class="money-input"><em id="curSymbol">S/</em><input type="number" name="amount" step="0.01" min="0.01" inputmode="decimal" required placeholder="0.00"></div>
+    </label>
+    <label class="field">
+      <span>Concepto</span>
+      <input type="text" name="concept" maxlength="60" required placeholder="Ej. Café, Pasaje, Supermercado" list="conceptSuggestions">
+      <datalist id="conceptSuggestions"></datalist>
+    </label>
+    <label class="field">
+      <span>Fecha</span>
+      <input type="date" name="date" required>
+    </label>
+    <p class="hint" id="kindHint"></p>
+    <footer class="modal__foot">
+      <button type="button" class="btn btn--ghost danger" id="deleteMov" hidden>Eliminar</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn btn--ghost" data-close>Cancelar</button>
+      <button type="submit" class="btn btn--primary">Guardar</button>
+    </footer>
+  </form>
+</dialog>
+
+<!-- Fixed expenses manager -->
+<dialog class="modal" id="fixedModal">
+  <form method="dialog" id="fixedForm">
+    <header class="modal__head">
+      <h2>Mis gastos fijos</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Cerrar">✕</button>
+    </header>
+    <p class="muted">Alquiler, luz, internet, celular, suscripciones… Los mensuales se convierten a su equivalente semanal.</p>
+    <div class="fixed-rows" id="fixedRows"></div>
+    <button type="button" class="btn btn--soft btn--block" id="addFixedRow">+ Añadir gasto fijo</button>
+    <footer class="modal__foot">
+      <span class="spacer"></span>
+      <button type="button" class="btn btn--ghost" data-close>Cancelar</button>
+      <button type="submit" class="btn btn--primary">Guardar</button>
+    </footer>
+  </form>
+</dialog>
+
+<div class="tooltip" id="tooltip" role="status" hidden></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="app.js?v=20260928"></script>
+</body>
+</html>
