@@ -426,11 +426,11 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 @media (max-width:800px){.team{grid-template-columns:1fr 1fr;grid-template-rows:none;grid-auto-rows:220px}.athlete--xl{grid-row:span 2}}
 
 .events{max-width:1400px;margin:clamp(70px,9vw,130px) auto 0;position:relative}
-.events__head{display:flex;justify-content:space-between;align-items:end;gap:16px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.events__head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:8px 16px;padding-bottom:18px;border-bottom:1px solid var(--line)}
 .events__head h3{margin:0;font-size:clamp(28px,3vw,44px);font-weight:900;font-stretch:115%;letter-spacing:-.03em}
 .events__head span{color:var(--text-dim)}
 .events__list{list-style:none;margin:0;padding:0}
-.events__list li{display:grid;grid-template-columns:120px 1.6fr 1fr auto;gap:20px;align-items:center;padding:28px 0;border-bottom:1px solid var(--line);position:relative;cursor:default;transition:padding .5s var(--ease),color .3s}
+.events__list li{display:grid;grid-template-columns:170px 1.6fr 1fr auto;gap:20px;align-items:center;padding:28px 0;border-bottom:1px solid var(--line);position:relative;cursor:default;transition:padding .5s var(--ease),color .3s}
 .events__list li::before{content:"";position:absolute;inset:0;background:var(--acc);transform:scaleY(0);transform-origin:bottom;transition:transform .5s var(--ease);z-index:-1;border-radius:4px}
 .events__list li:hover{padding-left:20px;padding-right:20px;color:var(--ink)}
 .events__list li:hover::before{transform:scaleY(1)}
