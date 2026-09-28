@@ -1,11 +1,13 @@
 /* ==========================================================================
    Mis Finanzas semanales — lógica de la app (sin dependencias)
-   Datos guardados en localStorage del navegador.
+   Cada persona entra con su correo y contraseña; sus datos se guardan en
+   el servidor (api/index.php) y se sincronizan automáticamente.
    ========================================================================== */
 (function () {
   'use strict';
 
-  const STORE_KEY = 'fs-data-v1';
+  const LEGACY_KEY = 'fs-data-v1'; // datos de la versión sin cuentas (solo navegador)
+  const API = 'api/index.php';
   const KINDS = {
     ingreso: { label: 'Ingreso', plural: 'Ingresos' },
     fijo:    { label: 'Gasto fijo', plural: 'Gastos fijos', color: '--s-fijo' },
@@ -23,7 +25,8 @@
   };
 
   /* ---------------- State ---------------- */
-  let state = load();
+  let state = emptyState();
+  let user = null;
   let weekStart = mondayOf(new Date());
   let filter = 'all';
   let editingId = null;
@@ -31,16 +34,56 @@
   function emptyState() {
     return { currency: 'PEN', movements: [], fixed: [], appliedWeeks: {} };
   }
-  function load() {
-    try {
-      const raw = localStorage.getItem(STORE_KEY);
-      if (raw) return Object.assign(emptyState(), JSON.parse(raw));
-    } catch (e) {}
-    return emptyState();
+
+  /* ---------------- Server ---------------- */
+  async function api(action, body) {
+    const opts = { credentials: 'same-origin', headers: { 'X-Requested-With': 'fetch' } };
+    if (body !== undefined) {
+      opts.method = 'POST';
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify(body);
+    }
+    let res;
+    try { res = await fetch(API + '?action=' + action, opts); }
+    catch (e) { throw Object.assign(new Error('No hay conexión. Revisa tu internet e inténtalo de nuevo.'), { status: 0 }); }
+    let json = {};
+    try { json = await res.json(); } catch (e) {}
+    if (!res.ok) throw Object.assign(new Error(json.error || 'Algo salió mal. Inténtalo de nuevo.'), { status: res.status });
+    return json;
   }
+
+  // Saving: every change is queued and sent to the server shortly after.
+  let saveTimer = null, saving = false, dirty = false;
   function save() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+    dirty = true;
+    setSync('saving');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(flush, 600);
   }
+  async function flush() {
+    if (saving || !dirty || !user) return;
+    saving = true; dirty = false;
+    let retryIn = 0;
+    try {
+      await api('save', { data: state });
+    } catch (e) {
+      dirty = true;
+      setSync('error', e.message);
+      if (e.status === 401) { saving = false; return sessionExpired(); }
+      retryIn = 5000;
+    }
+    saving = false;
+    if (dirty) { clearTimeout(saveTimer); saveTimer = setTimeout(flush, retryIn || 300); }
+    else setSync('ok');
+  }
+  function setSync(st, msg) {
+    const el = document.getElementById('syncStatus');
+    if (!el) return;
+    el.dataset.state = st;
+    el.querySelector('span').textContent = st === 'saving' ? 'Guardando…' : st === 'error' ? 'Sin guardar' : 'Guardado';
+    el.title = msg || (st === 'error' ? 'No se pudo guardar. Reintentando…' : 'Tus datos están guardados en tu cuenta');
+  }
+  addEventListener('beforeunload', (e) => { if (dirty || saving) { e.preventDefault(); e.returnValue = ''; } });
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
   /* ---------------- Dates ---------------- */
@@ -579,6 +622,9 @@
         'export-json': exportJson,
         'import-json': () => $('#importFile').click(),
         demo: loadDemo,
+        password: () => openAccountModal('#passModal'),
+        logout: logout,
+        'delete-account': () => openAccountModal('#deleteModal'),
         reset: () => { if (confirm('¿Borrar TODOS tus datos? Esta acción no se puede deshacer.')) { state = Object.assign(emptyState(), { currency: state.currency }); save(); render(); toast('Datos borrados'); } },
       }[act.dataset.action] || (() => {}))();
     }
@@ -606,7 +652,7 @@
   });
 
   document.addEventListener('keydown', (e) => {
-    if (e.target.matches('input, select, textarea') || $('dialog[open]')) return;
+    if (!user || e.target.matches('input, select, textarea') || $('dialog[open]')) return;
     if (e.key === 'n' || e.key === 'N') { e.preventDefault(); openMovement(null); }
     if (e.key === 'ArrowLeft') $('#prevWeek').click();
     if (e.key === 'ArrowRight') $('#nextWeek').click();
@@ -615,5 +661,165 @@
   let rz;
   addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { const s = summarize(weekStart); renderDaily(s); renderTrend(); }, 120); });
 
-  render();
+  /* ---------------- Accounts ---------------- */
+  const authView = $('#authView'), appView = $('#appView');
+
+  function showAuth(tab) {
+    document.body.classList.remove('is-loading');
+    appView.hidden = true;
+    authView.hidden = false;
+    switchAuthTab(tab || 'login');
+  }
+  async function enterApp(u) {
+    user = u;
+    const res = await api('data');
+    state = Object.assign(emptyState(), res.data || {});
+    // Offer to bring over data saved in this browser by the old, account-less version
+    if (!res.data) {
+      let legacy = null;
+      try { legacy = JSON.parse(localStorage.getItem(LEGACY_KEY) || 'null'); } catch (e) {}
+      if (legacy && Array.isArray(legacy.movements) && legacy.movements.length &&
+          confirm('Encontramos ' + legacy.movements.length + ' movimientos guardados en este navegador. ¿Quieres pasarlos a tu cuenta?')) {
+        state = Object.assign(emptyState(), legacy);
+        save();
+        try { localStorage.removeItem(LEGACY_KEY); } catch (e) {}
+      }
+    }
+    const name = u.name || u.email;
+    $('#userName').textContent = name;
+    $('#userEmail').textContent = u.email;
+    $('#userAvatar').textContent = name.trim().charAt(0).toUpperCase();
+    authView.hidden = true;
+    appView.hidden = false;
+    document.body.classList.remove('is-loading');
+    weekStart = mondayOf(new Date());
+    render();
+    setSync('ok');
+  }
+  function sessionExpired() {
+    user = null;
+    toast('Tu sesión terminó. Vuelve a iniciar sesión.');
+    showAuth('login');
+  }
+  async function logout() {
+    if (dirty || saving) { clearTimeout(saveTimer); await flush().catch(() => {}); }
+    try { await api('logout', {}); } catch (e) {}
+    location.reload(); // clears every trace of this person's data from the page
+  }
+
+  function switchAuthTab(tab) {
+    $$('[role=tab][data-auth-tab]').forEach((b) => b.setAttribute('aria-selected', b.dataset.authTab === tab ? 'true' : 'false'));
+    $('#loginForm').hidden = tab !== 'login';
+    $('#registerForm').hidden = tab !== 'register';
+    $$('.form-error', authView).forEach((x) => (x.hidden = true));
+    const f = tab === 'login' ? $('#loginForm') : $('#registerForm');
+    setTimeout(() => { const i = f.querySelector('input'); if (i && innerWidth > 860) i.focus(); }, 30);
+  }
+  authView.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-auth-tab]');
+    if (t) switchAuthTab(t.dataset.authTab);
+    const pt = e.target.closest('.pass-toggle');
+    if (pt) {
+      const inp = pt.parentElement.querySelector('input');
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+      pt.textContent = inp.type === 'password' ? 'Ver' : 'Ocultar';
+    }
+  });
+
+  function formError(form, msg) {
+    const el = form.querySelector('.form-error');
+    el.textContent = msg || '';
+    el.hidden = !msg;
+  }
+  async function submitting(form, fn) {
+    const btn = form.querySelector('[type=submit]');
+    const label = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Un momento…';
+    formError(form, '');
+    try { await fn(); }
+    catch (e) { formError(form, e.message); }
+    finally { btn.disabled = false; btn.textContent = label; }
+  }
+  const validEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+  $('#loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = e.target;
+    const email = f.email.value.trim(), password = f.password.value;
+    if (!validEmail(email)) return formError(f, 'Escribe un correo electrónico válido.');
+    if (!password) return formError(f, 'Escribe tu contraseña.');
+    submitting(f, async () => {
+      const res = await api('login', { email, password });
+      f.reset();
+      await enterApp(res.user);
+      toast('¡Hola, ' + (res.user.name || '').split(' ')[0] + '!');
+    });
+  });
+
+  $('#registerForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = e.target;
+    const name = f.name.value.trim(), email = f.email.value.trim(), password = f.password.value;
+    if (name.length < 2) return formError(f, 'Escribe tu nombre.');
+    if (!validEmail(email)) return formError(f, 'Escribe un correo electrónico válido.');
+    if (password.length < 8) return formError(f, 'La contraseña debe tener al menos 8 caracteres.');
+    if (password !== f.password2.value) return formError(f, 'Las contraseñas no coinciden.');
+    submitting(f, async () => {
+      const res = await api('register', { name, email, password, invite: f.invite.value.trim() });
+      f.reset();
+      await enterApp(res.user);
+      toast('¡Cuenta creada! Bienvenido, ' + name.split(' ')[0]);
+    });
+  });
+
+  // password strength meter
+  $('#registerForm').password.addEventListener('input', (e) => {
+    const v = e.target.value;
+    let score = 0;
+    if (v.length >= 8) score++;
+    if (v.length >= 12) score++;
+    if (/[A-Z]/.test(v) && /[a-z]/.test(v)) score++;
+    if (/\d/.test(v) && /[^A-Za-z0-9]/.test(v)) score++;
+    $('.strength', e.target.form).dataset.score = v ? Math.max(1, score) : 0;
+  });
+
+  function openAccountModal(sel) {
+    const d = $(sel);
+    d.querySelector('form').reset();
+    formError(d.querySelector('form'), '');
+    d.showModal();
+  }
+  $('#passForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = e.target;
+    if (f.new.value.length < 8) return formError(f, 'La nueva contraseña debe tener al menos 8 caracteres.');
+    if (f.new.value !== f.new2.value) return formError(f, 'Las contraseñas no coinciden.');
+    submitting(f, async () => {
+      await api('password', { current: f.current.value, new: f.new.value });
+      $('#passModal').close();
+      toast('Contraseña actualizada');
+    });
+  });
+  $('#deleteForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = e.target;
+    submitting(f, async () => {
+      clearTimeout(saveTimer); dirty = false;
+      await api('delete_account', { password: f.password.value });
+      location.reload();
+    });
+  });
+
+  async function boot() {
+    try {
+      const me = await api('me');
+      $('#inviteField').hidden = !me.inviteRequired;
+      if (me.user) await enterApp(me.user);
+      else showAuth('login');
+    } catch (e) {
+      showAuth('login');
+      formError($('#loginForm'), e.message);
+    }
+  }
+  boot();
 })();

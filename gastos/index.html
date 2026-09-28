@@ -10,12 +10,84 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="styles.css?v=20260928">
+<link rel="stylesheet" href="styles.css?v=20260928b">
 <script>
   try { var t = localStorage.getItem('fs-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
 </head>
-<body>
+<body class="is-loading">
+
+<!-- ============ Acceso: iniciar sesión / crear cuenta ============ -->
+<section class="auth" id="authView" hidden>
+  <div class="auth__side">
+    <a class="brand brand--lg" href="./">
+      <span class="brand__mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 17l5-5 4 4 7-8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span>Mis Finanzas<small>semanales</small></span>
+    </a>
+    <div class="auth__pitch">
+      <h1>Tu dinero, semana a semana.</h1>
+      <p>Registra tus ingresos, gastos fijos, gastos hormiga y compras. Descubre cuánto ganas de verdad y en qué se te va el dinero.</p>
+      <ul class="auth__points">
+        <li><span>✓</span>Ganancia y % de ahorro de cada semana</li>
+        <li><span>✓</span>Detecta tus gastos hormiga y cuánto suman al año</li>
+        <li><span>✓</span>Tus datos, privados y protegidos con tu contraseña</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="auth__panel">
+    <div class="auth__card">
+      <div class="tabs tabs--full" role="tablist">
+        <button role="tab" aria-selected="true" data-auth-tab="login">Iniciar sesión</button>
+        <button role="tab" aria-selected="false" data-auth-tab="register">Crear cuenta</button>
+      </div>
+
+      <form id="loginForm" class="auth__form" novalidate>
+        <div>
+          <h2>Bienvenido de nuevo</h2>
+          <p class="muted">Ingresa con tu correo y contraseña.</p>
+        </div>
+        <label class="field"><span>Correo electrónico</span>
+          <input type="email" name="email" autocomplete="email" required placeholder="tu@correo.com"></label>
+        <label class="field"><span>Contraseña</span>
+          <div class="pass-input"><input type="password" name="password" autocomplete="current-password" required placeholder="••••••••">
+          <button type="button" class="pass-toggle" aria-label="Mostrar contraseña">Ver</button></div></label>
+        <p class="form-error" role="alert" hidden></p>
+        <button type="submit" class="btn btn--primary btn--lg">Ingresar</button>
+        <p class="auth__switch">¿No tienes cuenta? <button type="button" data-auth-tab="register">Créala gratis</button></p>
+      </form>
+
+      <form id="registerForm" class="auth__form" novalidate hidden>
+        <div>
+          <h2>Crea tu cuenta</h2>
+          <p class="muted">Solo toma un minuto.</p>
+        </div>
+        <label class="field"><span>Nombre</span>
+          <input type="text" name="name" autocomplete="name" required minlength="2" maxlength="60" placeholder="Tu nombre"></label>
+        <label class="field"><span>Correo electrónico</span>
+          <input type="email" name="email" autocomplete="email" required placeholder="tu@correo.com"></label>
+        <label class="field"><span>Contraseña</span>
+          <div class="pass-input"><input type="password" name="password" autocomplete="new-password" required minlength="8" placeholder="Mínimo 8 caracteres">
+          <button type="button" class="pass-toggle" aria-label="Mostrar contraseña">Ver</button></div>
+          <div class="strength" aria-hidden="true"><i></i><i></i><i></i><i></i></div></label>
+        <label class="field"><span>Repite la contraseña</span>
+          <input type="password" name="password2" autocomplete="new-password" required placeholder="Repite tu contraseña"></label>
+        <label class="field" id="inviteField" hidden><span>Código de invitación</span>
+          <input type="text" name="invite" autocomplete="off" placeholder="El código que te enviaron"></label>
+        <p class="form-error" role="alert" hidden></p>
+        <button type="submit" class="btn btn--primary btn--lg">Crear cuenta</button>
+        <p class="auth__switch">¿Ya tienes cuenta? <button type="button" data-auth-tab="login">Inicia sesión</button></p>
+      </form>
+    </div>
+    <p class="footnote">Tu contraseña se guarda cifrada. Nadie más puede ver tus finanzas.</p>
+  </div>
+</section>
+
+<div class="loader" id="loader" aria-label="Cargando"><span></span></div>
+
+<div id="appView" hidden>
 
 <header class="topbar">
   <div class="wrap topbar__inner">
@@ -26,6 +98,7 @@
       <span>Mis Finanzas<small>semanales</small></span>
     </a>
     <div class="topbar__actions">
+      <span class="sync" id="syncStatus" data-state="ok" title="Estado de guardado"><i></i><span>Guardado</span></span>
       <label class="select-mini" title="Moneda">
         <span class="sr-only">Moneda</span>
         <select id="currency">
@@ -47,12 +120,21 @@
           <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="5" cy="12" r="1.8" fill="currentColor"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><circle cx="19" cy="12" r="1.8" fill="currentColor"/></svg>
         </button>
         <div class="menu__panel" id="menuPanel" hidden>
+          <div class="menu__user">
+            <span class="avatar" id="userAvatar">?</span>
+            <div><strong id="userName">—</strong><small id="userEmail">—</small></div>
+          </div>
+          <hr>
           <button data-action="export-csv">Exportar semana (CSV)</button>
           <button data-action="export-json">Copia de seguridad (JSON)</button>
           <button data-action="import-json">Restaurar copia…</button>
           <hr>
           <button data-action="demo">Cargar datos de ejemplo</button>
           <button data-action="reset" class="danger">Borrar todos los datos</button>
+          <hr>
+          <button data-action="password">Cambiar contraseña</button>
+          <button data-action="logout">Cerrar sesión</button>
+          <button data-action="delete-account" class="danger">Eliminar mi cuenta</button>
         </div>
       </div>
       <input type="file" id="importFile" accept="application/json" hidden>
@@ -215,8 +297,10 @@
     </div>
   </section>
 
-  <p class="footnote">Tus datos se guardan solo en este navegador. Haz una copia de seguridad desde el menú <strong>⋯</strong> para no perderlos.</p>
+  <p class="footnote">Tus datos se guardan en tu cuenta: entra desde cualquier dispositivo con tu correo y contraseña.</p>
 </main>
+
+</div><!-- /appView -->
 
 <!-- Add / edit movement -->
 <dialog class="modal" id="movModal">
@@ -273,9 +357,46 @@
   </form>
 </dialog>
 
+<!-- Change password -->
+<dialog class="modal" id="passModal">
+  <form method="dialog" id="passForm" novalidate>
+    <header class="modal__head">
+      <h2>Cambiar contraseña</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Cerrar">✕</button>
+    </header>
+    <label class="field"><span>Contraseña actual</span><input type="password" name="current" autocomplete="current-password" required></label>
+    <label class="field"><span>Nueva contraseña</span><input type="password" name="new" autocomplete="new-password" minlength="8" required placeholder="Mínimo 8 caracteres"></label>
+    <label class="field"><span>Repite la nueva contraseña</span><input type="password" name="new2" autocomplete="new-password" required></label>
+    <p class="form-error" role="alert" hidden></p>
+    <footer class="modal__foot">
+      <span class="spacer"></span>
+      <button type="button" class="btn btn--ghost" data-close>Cancelar</button>
+      <button type="submit" class="btn btn--primary">Guardar</button>
+    </footer>
+  </form>
+</dialog>
+
+<!-- Delete account -->
+<dialog class="modal" id="deleteModal">
+  <form method="dialog" id="deleteForm" novalidate>
+    <header class="modal__head">
+      <h2>Eliminar mi cuenta</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Cerrar">✕</button>
+    </header>
+    <p class="muted">Se borrarán tu cuenta y todos tus movimientos. Esta acción no se puede deshacer. Si quieres conservarlos, descarga antes una copia de seguridad.</p>
+    <label class="field"><span>Escribe tu contraseña para confirmar</span><input type="password" name="password" autocomplete="current-password" required></label>
+    <p class="form-error" role="alert" hidden></p>
+    <footer class="modal__foot">
+      <span class="spacer"></span>
+      <button type="button" class="btn btn--ghost" data-close>Cancelar</button>
+      <button type="submit" class="btn btn--danger">Eliminar definitivamente</button>
+    </footer>
+  </form>
+</dialog>
+
 <div class="tooltip" id="tooltip" role="status" hidden></div>
 <div class="toast" id="toast" role="status" hidden></div>
 
-<script src="app.js?v=20260928"></script>
+<script src="app.js?v=20260928b"></script>
 </body>
 </html>

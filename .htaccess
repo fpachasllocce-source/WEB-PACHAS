@@ -101,3 +101,14 @@
   AddType application/javascript .mjs
   AddType application/wasm .wasm
 </IfModule>
+
+# ----- Mis Finanzas: nunca servir archivos de base de datos -----
+<FilesMatch "\.(sqlite|sqlite-wal|sqlite-shm|db)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
