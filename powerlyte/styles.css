@@ -503,3 +503,5 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
   .manifesto__text .w{opacity:1}
 }
 .athlete .photo img{object-position:center 25%}
+.athlete__info{padding-top:90px;background:linear-gradient(transparent,rgba(4,7,15,.55) 35%,rgba(4,7,15,.94))}
+.athlete__info .mono{justify-self:start;padding:5px 10px;border-radius:999px;background:rgba(4,7,15,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
