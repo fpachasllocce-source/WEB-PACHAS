@@ -506,3 +506,26 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 .athlete__info{padding-top:90px;background:linear-gradient(transparent,rgba(4,7,15,.55) 35%,rgba(4,7,15,.94))}
 .athlete__info .mono{justify-self:start;padding:5px 10px;border-radius:999px;background:rgba(4,7,15,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .community{box-shadow:0 -1px 0 rgba(124,245,255,.22),0 -30px 60px -20px rgba(0,0,0,.6)}
+
+/* ---------- clubes auspiciados ---------- */
+.clubs{max-width:1400px;margin:clamp(70px,9vw,130px) auto 0}
+.clubs__head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:20px;padding-bottom:22px;border-bottom:1px solid var(--line);margin-bottom:22px}
+.clubs__title{margin:12px 0 0;font-size:clamp(32px,4vw,64px);font-weight:900;font-stretch:115%;letter-spacing:-.035em;line-height:.95}
+.clubs__count{margin:0;display:flex;align-items:center;gap:14px}
+.clubs__count b{font-size:clamp(48px,5vw,80px);font-weight:900;font-stretch:125%;line-height:1;letter-spacing:-.05em;color:transparent;-webkit-text-stroke:1.5px var(--ice)}
+.clubs__count .mono{color:var(--text-dim);max-width:150px}
+.clubs__list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.club{--club:var(--ice);position:relative;border-radius:22px;overflow:hidden;background:var(--ink-3);border:1px solid var(--line);transition:opacity 1s var(--ease),transform .9s var(--ease),border-color .4s,box-shadow .6s var(--ease)}
+.club.reveal.is-in:hover{transform:translateY(-10px)}
+.club:hover{border-color:var(--club);box-shadow:0 30px 70px -30px var(--club)}
+.clubs__list .club:nth-child(2){transition-delay:90ms}.clubs__list .club:nth-child(3){transition-delay:180ms}
+.club__img{margin:0;aspect-ratio:5/6;overflow:hidden}
+.club__img img{width:100%;height:100%;object-fit:cover;object-position:top;transition:transform 1.2s var(--ease)}
+.club:hover .club__img img{transform:scale(1.05)}
+.club__info{position:relative;display:grid;grid-template-columns:auto 1fr;gap:2px 14px;padding:20px 22px 22px;border-top:3px solid var(--club)}
+.club__num{grid-row:span 3;color:var(--club);padding-top:6px}
+.club__info h4{margin:0;font-size:clamp(22px,2vw,30px);font-weight:900;font-stretch:112%;letter-spacing:-.025em;line-height:1.05}
+.club__info p{margin:0;color:var(--text-dim);font-size:15px}
+.club__info em{justify-self:start;margin-top:10px;font-style:normal;padding:6px 12px;border-radius:999px;background:var(--club);color:var(--ink);font-size:10px}
+@media (max-width:900px){.clubs__list{grid-template-columns:1fr 1fr}.clubs__list .club:last-child{grid-column:1/-1}.clubs__list .club:last-child .club__img{aspect-ratio:16/10}}
+@media (max-width:560px){.clubs__list{grid-template-columns:1fr}.clubs__list .club:last-child .club__img{aspect-ratio:5/6}}
