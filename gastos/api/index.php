@@ -2,7 +2,8 @@
 /* ==========================================================================
    Mis Finanzas — API de cuentas y datos
    Acciones (?action=…): me, register, login, logout, data, save, password,
-                         delete_account, forgot, reset, verify, resend_verify
+                         delete_account, forgot, reset, verify, resend_verify,
+                         pay, admin_payments, admin_review, admin_grant
    ========================================================================== */
 declare(strict_types=1);
 define('FS_APP', true);
@@ -86,7 +87,21 @@ function migrate(PDO $pdo, bool $mysql): void {
         purpose VARCHAR(16) NOT NULL,
         expires_at INTEGER NOT NULL
     )$engine");
+    // one-time payment reports (Yape / Plin), reviewed by hand by an admin
+    $pdo->exec("CREATE TABLE IF NOT EXISTS payments (
+        id $id,
+        user_id INTEGER NOT NULL,
+        method VARCHAR(8) NOT NULL,
+        operation VARCHAR(32) NOT NULL,
+        payer VARCHAR(80) NOT NULL DEFAULT '',
+        amount DECIMAL(10,2) NOT NULL,
+        status VARCHAR(10) NOT NULL,
+        note VARCHAR(200) NOT NULL DEFAULT '',
+        created_at INTEGER NOT NULL,
+        reviewed_at INTEGER NULL
+    )$engine");
     add_column($pdo, $mysql, 'users', 'email_verified_at', 'INTEGER NULL');
+    add_column($pdo, $mysql, 'users', 'paid_at', 'INTEGER NULL');
     add_column($pdo, $mysql, 'user_data', 'rev', 'INTEGER NOT NULL DEFAULT 0');
 }
 
@@ -207,8 +222,61 @@ function require_user(): array {
     if (!$u) fail(401, 'Tu sesión ha terminado. Vuelve a iniciar sesión.');
     return $u;
 }
+function user_row(int $id): array {
+    $st = db()->prepare('SELECT id, email, name, email_verified_at, paid_at FROM users WHERE id = ?');
+    $st->execute([$id]);
+    return $st->fetch() ?: [];
+}
+function is_admin(array $u): bool {
+    global $config;
+    // the email must be confirmed, or anyone could sign up first with the admin's address
+    return !empty($u['email_verified_at'])
+        && in_array(strtolower($u['email']), array_map('strtolower', (array)$config['admin_emails']), true);
+}
+function has_access(array $u): bool {
+    global $config;
+    return !$config['payment_required'] || !empty($u['paid_at']) || is_admin($u);
+}
+function latest_payment(int $userId): ?array {
+    $st = db()->prepare('SELECT method, operation, status, note, created_at FROM payments WHERE user_id = ? ORDER BY id DESC LIMIT 1');
+    $st->execute([$userId]);
+    return $st->fetch() ?: null;
+}
+/** Everything the page needs to know about the signed-in person. */
 function public_user(array $u): array {
-    return ['email' => $u['email'], 'name' => $u['name'], 'verified' => !empty($u['email_verified_at'])];
+    global $config;
+    $u = user_row((int)$u['id']);
+    $out = [
+        'email' => $u['email'],
+        'name' => $u['name'],
+        'verified' => !empty($u['email_verified_at']),
+        'access' => has_access($u),
+        'admin' => is_admin($u),
+    ];
+    if (!$out['access']) {
+        $out['payment'] = latest_payment((int)$u['id']);
+        $out['pay'] = [
+            'price' => $config['price'],
+            'yape' => $config['yape_number'] !== '' ? ['number' => $config['yape_number'], 'holder' => $config['yape_holder'], 'qr' => $config['yape_qr']] : null,
+            'plin' => $config['plin_number'] !== '' ? ['number' => $config['plin_number'], 'holder' => $config['plin_holder']] : null,
+            'reviewHours' => $config['review_hours'],
+        ];
+    }
+    return $out;
+}
+function require_access(): array {
+    $u = require_user();
+    if (!has_access(user_row((int)$u['id']))) fail(402, 'Activa tu cuenta con el pago único para usar la app.');
+    return $u;
+}
+function require_admin(): array {
+    $u = require_user();
+    if (!is_admin(user_row((int)$u['id']))) fail(403, 'Solo para administradores.');
+    return $u;
+}
+function admin_link(): string {
+    global $config;
+    return $config['app_url'] !== '' ? rtrim($config['app_url'], '/') . '/?admin=1' : '';
 }
 
 /* ---------------- Request guard ---------------- */
@@ -263,7 +331,7 @@ case 'POST register':
     $id = (int)db()->lastInsertId();
     start_session($id);
     $sent = $config['app_url'] !== '' && send_verification(['id' => $id, 'email' => $email, 'name' => $name]);
-    respond(201, ['user' => ['email' => $email, 'name' => $name, 'verified' => false], 'verificationSent' => $sent]);
+    respond(201, ['user' => public_user(['id' => $id]), 'verificationSent' => $sent]);
 
 case 'POST login':
     $in = input();
@@ -300,7 +368,7 @@ case 'POST logout':
     respond(200, ['ok' => true]);
 
 case 'GET data':
-    $u = require_user();
+    $u = require_access();
     $st = db()->prepare('SELECT data, updated_at, rev FROM user_data WHERE user_id = ?');
     $st->execute([$u['id']]);
     $row = $st->fetch();
@@ -314,7 +382,7 @@ case 'POST save':
     // Optimistic locking: the client says which revision its changes are based
     // on. If another device saved in between, nothing is overwritten: we answer
     // 409 with the newer data so the client can merge and try again.
-    $u = require_user();
+    $u = require_access();
     $in = input();
     $data = $in['data'] ?? null;
     $baseRev = (int)($in['baseRev'] ?? -1);
@@ -371,6 +439,8 @@ case 'POST delete_account':
     $pdo->beginTransaction();
     $pdo->prepare('DELETE FROM user_data WHERE user_id = ?')->execute([$u['id']]);
     $pdo->prepare('DELETE FROM sessions WHERE user_id = ?')->execute([$u['id']]);
+    $pdo->prepare('DELETE FROM tokens WHERE user_id = ?')->execute([$u['id']]);
+    $pdo->prepare('DELETE FROM payments WHERE user_id = ?')->execute([$u['id']]);
     $pdo->prepare('DELETE FROM users WHERE id = ?')->execute([$u['id']]);
     $pdo->commit();
     set_session_cookie('', time() - 3600);
@@ -418,9 +488,7 @@ case 'POST reset':
         ->execute([password_hash($pass, PASSWORD_DEFAULT), time(), $id]);
     db()->prepare('DELETE FROM sessions WHERE user_id = ?')->execute([$id]);
     start_session($id);
-    $st = db()->prepare('SELECT email, name, email_verified_at FROM users WHERE id = ?');
-    $st->execute([$id]);
-    respond(200, ['user' => public_user($st->fetch())]);
+    respond(200, ['user' => public_user(['id' => $id])]);
 
 case 'POST verify':
     $in = input();
@@ -435,6 +503,87 @@ case 'POST resend_verify':
     if (too_many('verify|' . $u['id'], 3, 3600)) fail(429, 'Ya te enviamos varios correos. Revisa también la carpeta de spam.');
     record_attempt('verify|' . $u['id']);
     if (!send_verification($u)) fail(502, 'No pudimos enviar el correo. Inténtalo más tarde.');
+    respond(200, ['ok' => true]);
+
+case 'POST pay':
+    // The person reports their Yape/Plin payment; an admin checks it by hand.
+    $u = require_user();
+    $row = user_row((int)$u['id']);
+    if (has_access($row)) respond(200, ['user' => public_user($row)]);
+    $in = input();
+    $method = (string)($in['method'] ?? '');
+    $op = preg_replace('/\D/', '', (string)($in['operation'] ?? ''));
+    $payer = trim((string)($in['payer'] ?? ''));
+    if (!in_array($method, ['yape', 'plin'], true)) fail(422, 'Elige Yape o Plin.');
+    if (strlen($op) < 4 || strlen($op) > 20) fail(422, 'Escribe el número de operación que aparece en tu comprobante.');
+    if (mb_strlen($payer) < 2 || mb_strlen($payer) > 80) fail(422, 'Escribe el nombre de quien hizo el pago.');
+    if (too_many('pay|' . $u['id'], 5, 3600)) fail(429, 'Demasiados intentos. Espera un momento o escríbenos.');
+    record_attempt('pay|' . $u['id']);
+    // one operation number can only activate one account
+    $st = db()->prepare("SELECT user_id FROM payments WHERE method = ? AND operation = ? AND status <> 'rejected'");
+    $st->execute([$method, $op]);
+    $other = $st->fetchColumn();
+    if ($other !== false && (int)$other !== (int)$u['id']) fail(409, 'Ese número de operación ya fue registrado.');
+    $pdo = db();
+    $pdo->prepare("DELETE FROM payments WHERE user_id = ? AND status = 'pending'")->execute([$u['id']]);
+    $pdo->prepare("INSERT INTO payments (user_id, method, operation, payer, amount, status, created_at) VALUES (?, ?, ?, ?, ?, 'pending', ?)")
+        ->execute([$u['id'], $method, $op, $payer, $config['price'], time()]);
+    // let the admins know there's a payment to check
+    if ($link = admin_link()) {
+        [$text, $html] = email_template(
+            'Nuevo pago por revisar',
+            "{$row['name']} ({$row['email']}) reportó un pago de S/ {$config['price']} por " . ucfirst($method) . " a nombre de $payer. Operación: $op.",
+            'Revisar pagos', $link,
+            'Comprueba el pago en tu app de ' . ucfirst($method) . ' antes de aprobarlo.'
+        );
+        foreach ((array)$config['admin_emails'] as $to) send_mail($to, 'Pago por revisar · Mis Finanzas', $text, $html);
+    }
+    respond(200, ['user' => public_user($row)]);
+
+case 'GET admin_payments':
+    require_admin();
+    $pending = db()->query("SELECT p.id, p.method, p.operation, p.payer, p.amount, p.created_at, u.name, u.email
+        FROM payments p JOIN users u ON u.id = p.user_id WHERE p.status = 'pending' ORDER BY p.id")->fetchAll();
+    $recent = db()->query("SELECT p.id, p.method, p.operation, p.payer, p.amount, p.status, p.note, p.reviewed_at, u.name, u.email
+        FROM payments p JOIN users u ON u.id = p.user_id WHERE p.status <> 'pending' ORDER BY p.reviewed_at DESC LIMIT 30")->fetchAll();
+    $stats = db()->query('SELECT COUNT(*) AS users, SUM(CASE WHEN paid_at IS NOT NULL THEN 1 ELSE 0 END) AS paid FROM users')->fetch();
+    respond(200, ['pending' => $pending, 'recent' => $recent, 'stats' => [
+        'users' => (int)$stats['users'], 'paid' => (int)$stats['paid'], 'price' => $config['price'],
+    ]]);
+
+case 'POST admin_review':
+    require_admin();
+    $in = input();
+    $id = (int)($in['id'] ?? 0);
+    $approve = !empty($in['approve']);
+    $note = mb_substr(trim((string)($in['note'] ?? '')), 0, 200);
+    $st = db()->prepare("SELECT p.user_id, u.email, u.name FROM payments p JOIN users u ON u.id = p.user_id WHERE p.id = ? AND p.status = 'pending'");
+    $st->execute([$id]);
+    $p = $st->fetch();
+    if (!$p) fail(404, 'Ese pago ya fue revisado.');
+    $now = time();
+    db()->prepare('UPDATE payments SET status = ?, note = ?, reviewed_at = ? WHERE id = ?')
+        ->execute([$approve ? 'approved' : 'rejected', $note, $now, $id]);
+    if ($approve) db()->prepare('UPDATE users SET paid_at = ? WHERE id = ?')->execute([$now, $p['user_id']]);
+    if ($config['app_url'] !== '') {
+        $first = explode(' ', trim($p['name']))[0] ?: 'Hola';
+        [$text, $html] = $approve
+            ? email_template('¡Tu cuenta está activa!', "Hola $first, confirmamos tu pago. Ya puedes usar Mis Finanzas para siempre.", 'Entrar a Mis Finanzas', $config['app_url'], 'Gracias por tu confianza.')
+            : email_template('No pudimos confirmar tu pago', "Hola $first, no encontramos tu pago." . ($note !== '' ? " Motivo: $note." : '') . ' Revisa el número de operación y vuelve a enviarlo.', 'Revisar mi pago', $config['app_url'], 'Si crees que es un error, responde a este correo.');
+        send_mail($p['email'], $approve ? 'Tu cuenta está activa · Mis Finanzas' : 'Revisa tu pago · Mis Finanzas', $text, $html);
+    }
+    respond(200, ['ok' => true]);
+
+case 'POST admin_grant':
+    // activate an account by hand (e.g. paid in cash) or revoke it
+    require_admin();
+    $in = input();
+    $email = clean_email((string)($in['email'] ?? ''));
+    $st = db()->prepare('SELECT id FROM users WHERE email = ?');
+    $st->execute([$email]);
+    $id = $st->fetchColumn();
+    if ($id === false) fail(404, 'No hay ninguna cuenta con ese correo.');
+    db()->prepare('UPDATE users SET paid_at = ? WHERE id = ?')->execute([empty($in['revoke']) ? time() : null, $id]);
     respond(200, ['ok' => true]);
 
 default:

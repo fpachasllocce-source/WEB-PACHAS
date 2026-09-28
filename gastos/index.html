@@ -7,10 +7,16 @@
 <meta name="description" content="Controla tus gastos semanales: gastos fijos, gastos hormiga, compras, ingresos y ganancias. Todo se guarda en tu navegador.">
 <meta name="theme-color" content="#0f1115">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mis Finanzas">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="styles.css?v=20260928c">
+<link rel="stylesheet" href="styles.css?v=20260928d">
 <script>
   try { var t = localStorage.getItem('fs-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
@@ -117,6 +123,70 @@
   </div>
 </section>
 
+<!-- ============ Activación: pago único ============ -->
+<section class="auth" id="payView" hidden>
+  <div class="auth__side">
+    <a class="brand brand--lg" href="./">
+      <span class="brand__mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 17l5-5 4 4 7-8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span>Mis Finanzas<small>semanales</small></span>
+    </a>
+    <div class="auth__pitch">
+      <p class="eyebrow eyebrow--light">Último paso</p>
+      <h1>Actívala por <span class="price-tag" data-price>S/ 10</span></h1>
+      <p><strong>Pago único.</strong> Sin mensualidades ni cobros sorpresa: pagas una vez y la usas para siempre.</p>
+      <ul class="auth__points">
+        <li><span>✓</span>Ingresos, gastos fijos, hormiga y compras</li>
+        <li><span>✓</span>Ganancia semanal, gráficos y alertas de presupuesto</li>
+        <li><span>✓</span>En tu celular y computadora, siempre sincronizado</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="auth__panel">
+    <div class="auth__card">
+      <ol class="stepper" aria-label="Pasos">
+        <li class="done"><span>✓</span>Cuenta</li>
+        <li class="current"><span>2</span>Pago</li>
+        <li><span>3</span>¡Listo!</li>
+      </ol>
+
+      <!-- pay form -->
+      <form id="payForm" class="auth__form" novalidate>
+        <div>
+          <h2>Paga <span data-price>S/ 10</span> con Yape o Plin</h2>
+          <p class="muted" id="payHello">Haz el pago desde tu celular y luego envíanos el número de operación.</p>
+        </div>
+        <div class="notice notice--bad" id="payRejected" hidden></div>
+        <div class="tabs tabs--full" role="tablist" id="payTabs"></div>
+        <div class="pay-box" id="payBox"></div>
+        <label class="field"><span>Número de operación</span>
+          <input type="text" name="operation" inputmode="numeric" autocomplete="off" required placeholder="Lo ves en el comprobante de tu pago"></label>
+        <label class="field"><span>Nombre de quien pagó</span>
+          <input type="text" name="payer" autocomplete="name" required maxlength="80" placeholder="Como aparece en Yape/Plin"></label>
+        <p class="form-error" role="alert" hidden></p>
+        <button type="submit" class="btn btn--primary btn--lg">Ya pagué, enviar comprobante</button>
+      </form>
+
+      <!-- pending review -->
+      <div class="auth__form" id="payPending" hidden>
+        <div class="pending-icon" aria-hidden="true">⏳</div>
+        <div>
+          <h2>Estamos verificando tu pago</h2>
+          <p class="muted" id="payPendingText">Te avisaremos por correo en cuanto tu cuenta esté activa.</p>
+        </div>
+        <dl class="pay-summary" id="paySummary"></dl>
+        <button type="button" class="btn btn--primary btn--lg" id="payRefresh">Ya me confirmaron, actualizar</button>
+        <button type="button" class="link-btn link-btn--center" id="payEdit">Me equivoqué en los datos del pago</button>
+      </div>
+
+      <p class="notice" id="payUnavailable" hidden>Los medios de pago aún no están configurados. Vuelve a intentarlo más tarde.</p>
+    </div>
+    <p class="footnote">Conectado como <strong id="payEmail"></strong> · <button type="button" class="link-inline" data-action="logout">Cerrar sesión</button></p>
+  </div>
+</section>
+
 <div class="loader" id="loader" aria-label="Cargando"><span></span></div>
 
 <div id="appView" hidden>
@@ -157,6 +227,9 @@
             <div><strong id="userName">—</strong><small id="userEmail">—</small></div>
           </div>
           <hr>
+          <button data-action="budgets">Presupuestos semanales</button>
+          <button data-action="install" id="installMenuItem" hidden>📲 Instalar app en este dispositivo</button>
+          <hr>
           <button data-action="export-csv">Exportar semana (CSV)</button>
           <button data-action="export-json">Copia de seguridad (JSON)</button>
           <button data-action="import-json">Restaurar copia…</button>
@@ -164,6 +237,7 @@
           <button data-action="demo">Cargar datos de ejemplo</button>
           <button data-action="reset" class="danger">Borrar todos los datos</button>
           <hr>
+          <button data-action="admin" id="adminMenuItem" hidden>Panel de administrador</button>
           <button data-action="password">Cambiar contraseña</button>
           <button data-action="logout">Cerrar sesión</button>
           <button data-action="delete-account" class="danger">Eliminar mi cuenta</button>
@@ -211,6 +285,7 @@
       <p class="hero__sub" id="heroSub">—</p>
       <div class="savebar" aria-hidden="true"><span id="saveFill"></span></div>
       <p class="hero__meta" id="heroMeta">—</p>
+      <div class="budget budget--hero" id="bTotal" data-kind="total"></div>
     </div>
     <div class="hero__split">
       <div>
@@ -236,16 +311,19 @@
       <header><span class="kpi__icon kpi__swatch" style="--c:var(--s-fijo)"></span><h2>Gastos fijos</h2></header>
       <p class="kpi__value" id="kFijo">—</p>
       <p class="kpi__delta" id="dFijo"></p>
+      <div class="budget" id="bFijo" data-kind="fijo"></div>
     </article>
     <article class="kpi" data-kind="hormiga">
       <header><span class="kpi__icon kpi__swatch" style="--c:var(--s-hormiga)"></span><h2>Gastos hormiga</h2></header>
       <p class="kpi__value" id="kHormiga">—</p>
       <p class="kpi__delta" id="dHormiga"></p>
+      <div class="budget" id="bHormiga" data-kind="hormiga"></div>
     </article>
     <article class="kpi" data-kind="compra">
       <header><span class="kpi__icon kpi__swatch" style="--c:var(--s-compra)"></span><h2>Compras realizadas</h2></header>
       <p class="kpi__value" id="kCompra">—</p>
       <p class="kpi__delta" id="dCompra"></p>
+      <div class="budget" id="bCompra" data-kind="compra"></div>
     </article>
   </section>
 
@@ -338,6 +416,9 @@
   <p class="footnote">Tus datos se guardan en tu cuenta: entra desde cualquier dispositivo con tu correo y contraseña.</p>
 </main>
 
+  <button class="fab" id="fab" aria-label="Registrar gasto rápido">
+    <svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
+  </button>
 </div><!-- /appView -->
 
 <!-- Add / edit movement -->
@@ -347,6 +428,7 @@
       <h2 id="movModalTitle">Nuevo movimiento</h2>
       <button type="button" class="icon-btn" data-close aria-label="Cerrar">✕</button>
     </header>
+    <div class="quick-chips" id="quickChips" aria-label="Registrar rápido"></div>
     <fieldset class="kind-picker">
       <legend class="sr-only">Tipo</legend>
       <label><input type="radio" name="kind" value="ingreso"><span><b>↗</b>Ingreso</span></label>
@@ -377,6 +459,23 @@
   </form>
 </dialog>
 
+<!-- Weekly budgets -->
+<dialog class="modal" id="budgetModal">
+  <form method="dialog" id="budgetForm" novalidate>
+    <header class="modal__head">
+      <h2>Presupuestos semanales</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Cerrar">✕</button>
+    </header>
+    <p class="muted">Pon un límite para cada semana. Te avisaremos al llegar al 80% y si te pasas. Déjalo vacío para no tener límite.</p>
+    <div class="budget-fields" id="budgetFields"></div>
+    <footer class="modal__foot">
+      <span class="spacer"></span>
+      <button type="button" class="btn btn--ghost" data-close>Cancelar</button>
+      <button type="submit" class="btn btn--primary">Guardar</button>
+    </footer>
+  </form>
+</dialog>
+
 <!-- Fixed expenses manager -->
 <dialog class="modal" id="fixedModal">
   <form method="dialog" id="fixedForm">
@@ -393,6 +492,50 @@
       <button type="submit" class="btn btn--primary">Guardar</button>
     </footer>
   </form>
+</dialog>
+
+<!-- Admin: payments -->
+<dialog class="modal modal--wide" id="adminModal">
+  <div class="modal__body">
+    <header class="modal__head">
+      <h2>Panel de administrador</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Cerrar">✕</button>
+    </header>
+    <div class="admin-stats" id="adminStats"></div>
+    <section>
+      <h3 class="admin-title">Pagos por revisar</h3>
+      <p class="muted">Abre tu app de Yape/Plin y comprueba que el pago llegó con ese número de operación antes de aprobarlo.</p>
+      <div id="adminPending" class="admin-list"></div>
+    </section>
+    <section>
+      <h3 class="admin-title">Activar una cuenta a mano</h3>
+      <form id="grantForm" class="grant-form" novalidate>
+        <input type="email" name="email" placeholder="correo@de-la-persona.com" required aria-label="Correo">
+        <button type="submit" class="btn btn--soft">Activar</button>
+      </form>
+      <p class="form-error" role="alert" hidden></p>
+    </section>
+    <section>
+      <h3 class="admin-title">Revisados recientemente</h3>
+      <div id="adminRecent" class="admin-list admin-list--compact"></div>
+    </section>
+  </div>
+</dialog>
+
+<!-- Install help (iPhone) -->
+<dialog class="modal" id="installModal">
+  <div class="modal__body">
+    <header class="modal__head">
+      <h2>Instala Mis Finanzas</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Cerrar">✕</button>
+    </header>
+    <ol class="install-steps">
+      <li>Toca el botón <strong>Compartir</strong> <span class="ios-share" aria-hidden="true">⬆︎</span> en la barra de Safari.</li>
+      <li>Elige <strong>“Añadir a pantalla de inicio”</strong>.</li>
+      <li>Toca <strong>Añadir</strong>. Tendrás el ícono junto a tus apps.</li>
+    </ol>
+    <button type="button" class="btn btn--primary btn--block" data-close>Entendido</button>
+  </div>
 </dialog>
 
 <!-- Change password -->
@@ -435,6 +578,6 @@
 <div class="tooltip" id="tooltip" role="status" hidden></div>
 <div class="toast" id="toast" role="status" hidden></div>
 
-<script src="app.js?v=20260928c"></script>
+<script src="app.js?v=20260928d"></script>
 </body>
 </html>

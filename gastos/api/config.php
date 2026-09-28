@@ -49,6 +49,20 @@ $config = [
     'backup_every_hours' => 24,
     'backup_keep'        => 14,           // cuántas copias guardar (las más antiguas se borran)
 
+    // Pago único para activar la cuenta (Yape / Plin, aprobación manual)
+    'payment_required' => true,           // false = la app es gratis, sin pago
+    'price'            => 10,             // monto en soles
+    'yape_number'      => '',             // ej. '987 654 321' (vacío = no mostrar Yape)
+    'yape_holder'      => '',             // nombre que aparece al yapear, ej. 'Fernando P.'
+    'yape_qr'          => '',             // opcional: imagen de tu QR de Yape, ej. 'img/yape-qr.png' (dentro de gastos/)
+    'plin_number'      => '',             // vacío = no mostrar Plin
+    'plin_holder'      => '',
+    'review_hours'     => 12,             // "revisamos tu pago en menos de X horas"
+
+    // Administradores: pueden aprobar pagos. Su correo debe estar confirmado.
+    // ej. ['tucorreo@gmail.com']
+    'admin_emails'     => [],
+
     // Seguridad
     'min_password_length' => 8,
     'max_login_attempts'  => 5,    // intentos fallidos permitidos…

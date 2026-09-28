@@ -32,7 +32,7 @@
   let editingId = null;
 
   function emptyState() {
-    return { currency: 'PEN', movements: [], fixed: [], appliedWeeks: {} };
+    return { currency: 'PEN', movements: [], fixed: [], appliedWeeks: {}, budgets: {} };
   }
 
   /* ---------------- Server ---------------- */
@@ -82,6 +82,7 @@
     } catch (e) {
       dirty = true;
       if (e.status === 401) { saving = false; return sessionExpired(); }
+      if (e.status === 402) { saving = false; return boot(); }
       if (e.status === 409 && e.body) {
         // edits made while this request was in flight are part of `state` and survive the merge
         const theirs = Object.assign(emptyState(), e.body.data || {});
@@ -126,7 +127,16 @@
       movements: mergeList(b.movements, mine.movements, theirs.movements),
       fixed: mergeList(b.fixed, mine.fixed, theirs.fixed),
       appliedWeeks: Object.assign({}, theirs.appliedWeeks, mine.appliedWeeks),
+      budgets: mergeKeys(b.budgets, mine.budgets, theirs.budgets),
     };
+  }
+  function mergeKeys(b, mine, theirs) {
+    b = b || {}; mine = mine || {}; theirs = theirs || {};
+    const out = Object.assign({}, theirs);
+    Object.keys(Object.assign({}, b, mine)).forEach((k) => {
+      if (mine[k] !== b[k]) { if (mine[k] === undefined) delete out[k]; else out[k] = mine[k]; }
+    });
+    return out;
   }
 
   // Coming back to the tab: pick up what was saved from another device
@@ -282,7 +292,80 @@
     $('#dFijo').innerHTML = deltaHtml(s.fijo, p.fijo, true);
     $('#dHormiga').innerHTML = deltaHtml(s.hormiga, p.hormiga, true);
     $('#dCompra').innerHTML = deltaHtml(s.compra, p.compra, true);
+    renderBudgets(s);
   }
+
+  /* ---------------- Budgets ---------------- */
+  const BUDGET_KEYS = [
+    { k: 'total', label: 'Total de gastos', hint: 'Fijos + hormiga + compras' },
+    { k: 'hormiga', label: 'Gastos hormiga', color: '--s-hormiga' },
+    { k: 'compra', label: 'Compras', color: '--s-compra' },
+    { k: 'fijo', label: 'Gastos fijos', color: '--s-fijo' },
+  ];
+  const spentOf = (s, k) => (k === 'total' ? s.gastos : s[k]);
+  function budgetStatus(spent, limit) {
+    const pct = limit > 0 ? (spent / limit) * 100 : 0;
+    return { pct, level: pct > 100 ? 'bad' : pct >= 80 ? 'warn' : 'good' };
+  }
+  function renderBudgets(s) {
+    const budgets = state.budgets || {};
+    [['total', '#bTotal'], ['fijo', '#bFijo'], ['hormiga', '#bHormiga'], ['compra', '#bCompra']].forEach(([k, sel]) => {
+      const el = $(sel), limit = +budgets[k] || 0;
+      if (!limit) {
+        el.innerHTML = k === 'total' ? '' : '<button class="budget__set" data-action="budgets">+ Poner límite semanal</button>';
+        return;
+      }
+      const spent = spentOf(s, k);
+      const { pct, level } = budgetStatus(spent, limit);
+      const color = level === 'bad' ? 'var(--st-bad)' : level === 'warn' ? 'var(--st-warn)' : 'var(--st-good)';
+      const msg = level === 'bad' ? '✕ Te pasaste ' + money(spent - limit)
+        : level === 'warn' ? '⚠ Quedan ' + money(limit - spent)
+        : '✓ Quedan ' + money(limit - spent);
+      el.innerHTML = '<div class="budget__bar" role="img" aria-label="' + pct.toFixed(0) + '% del presupuesto"><span style="--c:' + color + ';width:' + Math.min(100, pct) + '%"></span></div>' +
+        '<div class="budget__txt"><span>' + (k === 'total' ? 'Presupuesto semanal: ' : '') + pct.toFixed(0) + '% de ' + money(limit) + '</span><b class="' + level + '">' + msg + '</b></div>';
+    });
+  }
+  // Toast when a change pushes a budget past 80% or 100%
+  function budgetAlert(before, after) {
+    const budgets = state.budgets || {};
+    let alert = null;
+    BUDGET_KEYS.forEach(({ k, label }) => {
+      const limit = +budgets[k] || 0;
+      if (!limit) return;
+      const a = budgetStatus(spentOf(before, k), limit), b = budgetStatus(spentOf(after, k), limit);
+      if (b.level === a.level || b.pct <= a.pct) return;
+      const txt = b.level === 'bad'
+        ? '✕ Te pasaste de tu presupuesto de ' + label.toLowerCase() + ' (' + money(limit) + ')'
+        : '⚠ Ya usaste el ' + b.pct.toFixed(0) + '% de tu presupuesto de ' + label.toLowerCase();
+      if (!alert || b.level === 'bad') alert = txt;
+    });
+    return alert;
+  }
+  const budgetModal = $('#budgetModal');
+  function openBudgets() {
+    // suggestion: average of the last 4 complete weeks
+    const avg = {};
+    BUDGET_KEYS.forEach(({ k }) => (avg[k] = 0));
+    for (let i = 1; i <= 4; i++) {
+      const w = summarize(addDays(mondayOf(new Date()), -7 * i));
+      BUDGET_KEYS.forEach(({ k }) => (avg[k] += spentOf(w, k) / 4));
+    }
+    const b = state.budgets || {};
+    $('#budgetFields').innerHTML = BUDGET_KEYS.map(({ k, label, hint, color }) =>
+      '<label class="budget-field"><span>' + (color ? '<i style="--c:var(' + color + ')"></i>' : '') + '<span>' + label +
+      '<small>' + (avg[k] > 0 ? 'Tu promedio: ' + money(avg[k]) + ' por semana' : (hint || 'Sin datos aún')) + '</small></span></span>' +
+      '<div class="money-input"><em>' + esc(currencySymbol()) + '</em><input type="number" name="' + k + '" min="0" step="1" inputmode="decimal" placeholder="Sin límite" value="' + (b[k] || '') + '"></div></label>'
+    ).join('');
+    budgetModal.showModal();
+  }
+  $('#budgetForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const budgets = {};
+    BUDGET_KEYS.forEach(({ k }) => { const v = round2(parseFloat(e.target[k].value)); if (v > 0) budgets[k] = v; });
+    state.budgets = budgets;
+    save(); budgetModal.close(); render();
+    toast('Presupuestos guardados');
+  });
 
   /* ---- chart helpers ---- */
   function niceMax(v) {
@@ -485,20 +568,47 @@
   const movModal = $('#movModal');
   const movForm = $('#movForm');
 
-  function openMovement(m) {
+  function openMovement(m, kind) {
     editingId = m ? m.id : null;
     $('#movModalTitle').textContent = m ? 'Editar movimiento' : 'Nuevo movimiento';
     $('#deleteMov').hidden = !m;
     const today = new Date();
     const inWeek = today >= weekStart && today < addDays(weekStart, 7);
-    movForm.kind.value = m ? m.kind : (movForm.kind.value || 'hormiga');
+    movForm.kind.value = m ? m.kind : (kind || movForm.kind.value || 'hormiga');
     movForm.amount.value = m ? m.amount : '';
     movForm.concept.value = m ? m.concept : '';
     movForm.date.value = m ? m.date : iso(inWeek ? today : weekStart);
     updateHint();
     fillSuggestions();
+    $('#quickChips').hidden = !!m;
+    if (!m) renderQuickChips();
     movModal.showModal();
     setTimeout(() => movForm.amount.focus(), 30);
+  }
+  // One-tap shortcuts: the person's most repeated movements of the last 60 days
+  function renderQuickChips() {
+    const since = iso(addDays(new Date(), -60));
+    const seen = {};
+    state.movements.filter((m) => m.date >= since && m.kind !== 'fijo').forEach((m) => {
+      const key = m.kind + '|' + m.concept.trim().toLowerCase();
+      const e = seen[key] || (seen[key] = { kind: m.kind, concept: m.concept.trim(), n: 0, last: '', amount: 0 });
+      e.n++;
+      if (m.date >= e.last) { e.last = m.date; e.amount = m.amount; }
+    });
+    const top = Object.values(seen).filter((e) => e.n >= 2).sort((a, b) => b.n - a.n).slice(0, 8);
+    $('#quickChips').innerHTML = top.map((e, i) =>
+      '<button type="button" data-chip="' + i + '"><i style="--c:' + (e.kind === 'ingreso' ? 'var(--good)' : 'var(' + KINDS[e.kind].color + ')') + '"></i>' + esc(e.concept) + ' <b>' + money(e.amount) + '</b></button>'
+    ).join('');
+    $('#quickChips').onclick = (ev) => {
+      const b = ev.target.closest('[data-chip]');
+      if (!b) return;
+      const e = top[+b.dataset.chip];
+      movForm.kind.value = e.kind;
+      movForm.concept.value = e.concept;
+      movForm.amount.value = e.amount;
+      updateHint(); fillSuggestions();
+      movForm.querySelector('[type=submit]').focus();
+    };
   }
   function updateHint() { $('#kindHint').textContent = KIND_HINTS[movForm.kind.value] || ''; }
   function fillSuggestions() {
@@ -516,6 +626,8 @@
     const concept = movForm.concept.value.trim();
     if (!(amount > 0) || !concept || !movForm.date.value) return;
     const data = { kind: movForm.kind.value, amount, concept, date: movForm.date.value };
+    const wk = mondayOf(parseIso(data.date));
+    const before = summarize(wk);
     if (editingId) Object.assign(state.movements.find((m) => m.id === editingId), data);
     else state.movements.push(Object.assign({ id: uid() }, data));
     save();
@@ -523,7 +635,7 @@
     // jump to the week of the saved movement so it is visible
     weekStart = mondayOf(parseIso(data.date));
     render();
-    toast(editingId ? 'Movimiento actualizado' : 'Movimiento guardado');
+    toast(budgetAlert(before, summarize(wk)) || (editingId ? 'Movimiento actualizado' : 'Movimiento guardado'));
   });
   $('#deleteMov').addEventListener('click', () => {
     if (!editingId) return;
@@ -656,6 +768,7 @@
   $('#nextWeek').addEventListener('click', () => { weekStart = addDays(weekStart, 7); render(); });
   $('#todayWeek').addEventListener('click', () => { weekStart = mondayOf(new Date()); render(); });
   $('#addBtn').addEventListener('click', () => openMovement(null));
+  $('#fab').addEventListener('click', () => openMovement(null));
   $('#manageFixed').addEventListener('click', openFixed);
   $('#applyFixed').addEventListener('click', applyFixed);
   $('#currency').addEventListener('change', (e) => { state.currency = e.target.value; save(); render(); });
@@ -685,6 +798,9 @@
         'import-json': () => $('#importFile').click(),
         demo: loadDemo,
         password: () => openAccountModal('#passModal'),
+        admin: openAdmin,
+        budgets: openBudgets,
+        install: promptInstall,
         logout: logout,
         'delete-account': () => openAccountModal('#deleteModal'),
         reset: () => { if (confirm('¿Borrar TODOS tus datos? Esta acción no se puede deshacer.')) { state = Object.assign(emptyState(), { currency: state.currency }); save(); render(); toast('Datos borrados'); } },
@@ -724,16 +840,19 @@
   addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { const s = summarize(weekStart); renderDaily(s); renderTrend(); }, 120); });
 
   /* ---------------- Accounts ---------------- */
-  const authView = $('#authView'), appView = $('#appView');
+  const authView = $('#authView'), appView = $('#appView'), payView = $('#payView');
 
   function showAuth(tab) {
     document.body.classList.remove('is-loading');
     appView.hidden = true;
+    payView.hidden = true;
     authView.hidden = false;
     switchAuthTab(tab || 'login');
   }
   async function enterApp(u) {
     user = u;
+    if (!u.access) return showPay(u);
+    payView.hidden = true;
     const res = await api('data');
     adopt(res.data, res.rev);
     // Offer to bring over data saved in this browser by the old, account-less version
@@ -748,6 +867,7 @@
       }
     }
     const name = u.name || u.email;
+    $('#adminMenuItem').hidden = !u.admin;
     $('#userName').textContent = name;
     $('#userEmail').textContent = u.email;
     $('#userAvatar').textContent = name.trim().charAt(0).toUpperCase();
@@ -913,12 +1033,177 @@
     });
   });
 
+  /* ---------------- One-time payment (Yape / Plin) ---------------- */
+  let payMethod = null, payPoll = null;
+  const soles = (n) => 'S/ ' + Number(n).toFixed(Number.isInteger(+n) ? 0 : 2);
+
+  function showPay(u) {
+    document.body.classList.remove('is-loading');
+    authView.hidden = true;
+    appView.hidden = true;
+    payView.hidden = false;
+    const pay = u.pay || {};
+    $$('[data-price]', payView).forEach((el) => (el.textContent = soles(pay.price || 10)));
+    $('#payEmail').textContent = u.email;
+    $('#payHello').textContent = 'Hola ' + (u.name || '').split(' ')[0] + ', haz el pago desde tu celular y luego envíanos el número de operación.';
+    const methods = ['yape', 'plin'].filter((m) => pay[m]);
+    $('#payUnavailable').hidden = methods.length > 0;
+    if (!methods.includes(payMethod)) payMethod = methods[0] || null;
+    $('#payTabs').hidden = methods.length < 2;
+    $('#payTabs').innerHTML = methods.map((m) => '<button type="button" role="tab" data-pay-method="' + m + '" aria-selected="' + (m === payMethod) + '">' + (m === 'yape' ? 'Yape' : 'Plin') + '</button>').join('');
+    renderPayBox(pay);
+
+    const p = u.payment;
+    const pending = p && p.status === 'pending';
+    $('#payForm').hidden = pending || !methods.length;
+    $('#payPending').hidden = !pending;
+    $('#payRejected').hidden = !(p && p.status === 'rejected');
+    if (p && p.status === 'rejected') $('#payRejected').textContent = 'No pudimos confirmar tu pago anterior' + (p.note ? ': ' + p.note : '') + '. Revisa los datos y envíalo de nuevo.';
+    $('.stepper .current span', payView).textContent = pending ? '⏳' : '2';
+    if (pending) {
+      $('#payPendingText').textContent = 'Revisamos cada pago a mano, normalmente en menos de ' + (pay.reviewHours || 12) + ' horas. Te avisaremos por correo cuando tu cuenta esté activa.';
+      $('#paySummary').innerHTML = '<dt>Medio</dt><dd>' + (p.method === 'yape' ? 'Yape' : 'Plin') + '</dd><dt>N.º de operación</dt><dd>' + esc(p.operation) + '</dd><dt>Monto</dt><dd>' + soles(pay.price || 10) + '</dd>';
+    }
+    clearInterval(payPoll);
+    if (pending) payPoll = setInterval(checkPaid, 30000);
+  }
+  function renderPayBox(pay) {
+    const m = payMethod && pay[payMethod];
+    if (!m) { $('#payBox').innerHTML = ''; return; }
+    const name = payMethod === 'yape' ? 'Yape' : 'Plin';
+    $('#payBox').innerHTML =
+      (m.qr ? '<img src="' + esc(m.qr) + '" alt="Código QR de ' + name + '">' : '') +
+      '<span class="amount">Envía ' + soles(pay.price || 10) + ' por ' + name + ' al número</span>' +
+      '<div class="pay-number"><strong>' + esc(m.number) + '</strong><button type="button" class="btn btn--ghost btn--sm" data-copy="' + esc(m.number.replace(/\s/g, '')) + '">Copiar</button></div>' +
+      (m.holder ? '<span class="holder">A nombre de <strong>' + esc(m.holder) + '</strong></span>' : '') +
+      '<ol class="pay-steps"><li>Abre ' + name + ' y ' + (m.qr ? 'escanea el QR o ' : '') + 'escribe el número.</li><li>Envía exactamente ' + soles(pay.price || 10) + '.</li><li>Copia el <strong>número de operación</strong> del comprobante y pégalo abajo.</li></ol>';
+  }
+  async function checkPaid() {
+    if (payView.hidden) return clearInterval(payPoll);
+    try {
+      const me = await api('me');
+      if (!me.user) { clearInterval(payPoll); return showAuth('login'); }
+      if (me.user.access) {
+        clearInterval(payPoll);
+        await enterApp(me.user);
+        toast('🎉 ¡Tu cuenta está activa! Bienvenido');
+      } else if (me.user.payment && me.user.payment.status !== 'pending') showPay(me.user);
+      return me.user;
+    } catch (e) { return null; }
+  }
+  payView.addEventListener('click', async (e) => {
+    const t = e.target.closest('[data-pay-method]');
+    if (t) { payMethod = t.dataset.payMethod; showPay(user); }
+    const c = e.target.closest('[data-copy]');
+    if (c) {
+      try { await navigator.clipboard.writeText(c.dataset.copy); c.textContent = '¡Copiado!'; setTimeout(() => (c.textContent = 'Copiar'), 1500); } catch (err) {}
+    }
+  });
+  $('#payForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = e.target;
+    const operation = f.operation.value.replace(/\D/g, ''), payer = f.payer.value.trim();
+    if (operation.length < 4) return formError(f, 'Escribe el número de operación que aparece en tu comprobante.');
+    if (payer.length < 2) return formError(f, 'Escribe el nombre de quien hizo el pago.');
+    submitting(f, async () => {
+      const res = await api('pay', { method: payMethod, operation, payer });
+      user = res.user;
+      f.reset();
+      if (res.user.access) await enterApp(res.user); else showPay(res.user);
+    });
+  });
+  $('#payRefresh').addEventListener('click', async (e) => {
+    e.target.disabled = true;
+    const u = await checkPaid();
+    e.target.disabled = false;
+    if (u && !u.access) toast('Aún estamos revisando tu pago. Te avisaremos por correo.');
+  });
+  $('#payEdit').addEventListener('click', () => {
+    $('#payPending').hidden = true;
+    $('#payForm').hidden = false;
+    $('#payForm').operation.focus();
+  });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && !payView.hidden) checkPaid(); });
+
+  /* ---------------- Admin panel ---------------- */
+  const adminModal = $('#adminModal');
+  const fmtDate = (ts) => new Date(ts * 1000).toLocaleString('es-PE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  async function openAdmin() {
+    if (!adminModal.open) adminModal.showModal();
+    $('#adminPending').innerHTML = '<p class="muted">Cargando…</p>';
+    try {
+      const r = await api('admin_payments');
+      $('#adminStats').innerHTML =
+        '<div><small>Cuentas</small><strong>' + r.stats.users + '</strong></div>' +
+        '<div><small>Activas (pagaron)</small><strong>' + r.stats.paid + '</strong></div>' +
+        '<div><small>Recaudado aprox.</small><strong>' + soles(r.stats.paid * r.stats.price) + '</strong></div>';
+      $('#adminPending').innerHTML = r.pending.length ? r.pending.map((p) =>
+        '<div class="admin-item"><div class="who"><strong>' + esc(p.name) + '</strong><small>' + esc(p.email) + ' · ' + fmtDate(p.created_at) + '</small></div>' +
+        '<div class="op">' + (p.method === 'yape' ? 'Yape' : 'Plin') + ' · ' + soles(p.amount) + ' · pagó <b>' + esc(p.payer) + '</b> · operación <b>' + esc(p.operation) + '</b></div>' +
+        '<div class="actions"><button class="btn btn--primary btn--sm" data-review="' + p.id + '" data-approve="1">Aprobar</button><button class="btn btn--ghost btn--sm" data-review="' + p.id + '">Rechazar</button></div></div>'
+      ).join('') : '<p class="notice">✓ No hay pagos pendientes.</p>';
+      $('#adminRecent').innerHTML = r.recent.length ? r.recent.map((p) =>
+        '<div class="admin-item"><div class="who"><strong>' + esc(p.name) + '</strong><small>' + esc(p.email) + ' · op. ' + esc(p.operation) + (p.note ? ' · ' + esc(p.note) : '') + '</small></div>' +
+        '<span class="status status--' + p.status + '">' + (p.status === 'approved' ? '✓ Aprobado' : '✕ Rechazado') + '</span></div>'
+      ).join('') : '<p class="muted">Todavía no hay pagos revisados.</p>';
+    } catch (e) {
+      $('#adminPending').innerHTML = '<p class="notice notice--bad">' + esc(e.message) + '</p>';
+    }
+  }
+  adminModal.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-review]');
+    if (!b) return;
+    const approve = !!b.dataset.approve;
+    let note = '';
+    if (!approve) {
+      note = prompt('¿Por qué rechazas este pago? (la persona verá este mensaje)', 'No encontramos el pago con ese número de operación');
+      if (note === null) return;
+    } else if (!confirm('¿Confirmas que el pago llegó a tu Yape/Plin?')) return;
+    b.disabled = true;
+    try { await api('admin_review', { id: +b.dataset.review, approve, note }); toast(approve ? 'Cuenta activada' : 'Pago rechazado'); }
+    catch (err) { toast(err.message); }
+    openAdmin();
+  });
+  $('#grantForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = e.target;
+    const email = f.email.value.trim();
+    const err = f.parentElement.querySelector('.form-error');
+    err.hidden = true;
+    if (!validEmail(email)) { err.textContent = 'Escribe un correo válido.'; err.hidden = false; return; }
+    api('admin_grant', { email }).then(() => { f.reset(); toast('Cuenta activada: ' + email); openAdmin(); })
+      .catch((x) => { err.textContent = x.message; err.hidden = false; });
+  });
+
+  /* ---------------- Installable app (PWA) ---------------- */
+  let installEvent = null;
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+  addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    installEvent = e;
+    $('#installMenuItem').hidden = false;
+  });
+  addEventListener('appinstalled', () => { $('#installMenuItem').hidden = true; toast('¡App instalada!'); });
+  if (isIos && !standalone) $('#installMenuItem').hidden = false;
+  async function promptInstall() {
+    if (installEvent) {
+      installEvent.prompt();
+      await installEvent.userChoice.catch(() => {});
+      installEvent = null;
+      $('#installMenuItem').hidden = true;
+    } else $('#installModal').showModal();
+  }
+
   async function boot() {
     // Links from emails: ?reset=… (new password) and ?verify=… (confirm email)
     const params = new URLSearchParams(location.search);
     const verifyToken = params.get('verify');
     resetToken = params.get('reset') || '';
-    if (verifyToken || resetToken) history.replaceState(null, '', location.pathname); // keep tokens out of history
+    if (verifyToken || resetToken || params.get('admin') || params.get('quick')) history.replaceState(null, '', location.pathname); // keep tokens out of history
     try {
       let verifyMsg = '';
       if (verifyToken) {
@@ -928,8 +1213,12 @@
       const me = await api('me');
       $('#inviteField').hidden = !me.inviteRequired;
       if (resetToken) showAuth('reset');
-      else if (me.user) await enterApp(me.user);
-      else showAuth('login');
+      else if (me.user) {
+        await enterApp(me.user);
+        if (params.get('admin') && me.user.admin) openAdmin();
+        const quick = params.get('quick'); // app shortcut: open the quick-add sheet
+        if (quick && me.user.access && KINDS[quick]) openMovement(null, quick);
+      } else showAuth('login');
       if (verifyMsg) toast(verifyMsg);
     } catch (e) {
       showAuth('login');
