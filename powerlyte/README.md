@@ -4,7 +4,8 @@ Sitio estático (HTML + CSS + JS vanilla, sin build). Abrir `index.html` o subir
 
 ## Qué editar antes de publicar
 - **Tabla nutricional, sabores y tamaños** → `main.js`, bloque `FLAVORS`, `SIZES`, `NUTRITION_100` (valores por 100 ml; hoy son REFERENCIALES). `FLAVOR_OVERRIDES` para diferencias por sabor.
-- **Imágenes** → todos los placeholders llevan la etiqueta `IMG · … · medidas`. Guardar en `assets/img/`.
+- **Imágenes reales** en `assets/img/` (hero, línea de sabores, Días de calor, Comunidad, UGC). Faltan fotos de Frambuesa azul y Uva y un PNG transparente por sabor.
+- **Imágenes pendientes** → todos los placeholders llevan la etiqueta `IMG · … · medidas`. Guardar en `assets/img/`.
   - Botellas: PNG transparente 800×1800 por sabor y tamaño (reemplazan al SVG de la botella).
 - **Especialista** → sección Ciencia, bloque `.expert` (cita, nombre, colegiatura CNP/CMP).
 - **Atletas, eventos, redes** → sección Comunidad (`href="#"` pendientes).

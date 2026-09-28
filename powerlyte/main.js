@@ -10,34 +10,37 @@
      Reemplazar con la ficha técnica / rotulado oficial antes de publicar.
      `img`: ruta a la foto PNG transparente de cada botella (vacío = placeholder SVG).
      ----------------------------------------------------------------------- */
+  // Sabores vistos en los envases (625 ml). TODO confirmar nombre oficial de los sabores azul y morado.
   const FLAVORS = [
-    { id: 'fresa',    name: 'Fresa',             color: '#ff3b5c', color2: '#ffb1bf', img: '',
-      desc: 'Dulzor suave de fresa madura, fresca y ligera. La favorita para después del entreno.' },
-    { id: 'uva',      name: 'Uva',               color: '#8b5cf6', color2: '#d6c8ff', img: '',
-      desc: 'Uva intensa con final limpio. Sabor clásico de hidratación, sin empalagar.' },
-    { id: 'arandano', name: 'Arándano',          color: '#2f6bff', color2: '#a9c4ff', img: '',
-      desc: 'Arándano con un toque ácido que refresca. Ideal para sesiones largas y días de calor.' },
-    { id: 'tropical', name: 'Frutas tropicales', color: '#ff9f1c', color2: '#ffe08a', img: '',
-      desc: 'Mezcla tropical luminosa, con carácter. Para cuando el sol aprieta.' },
+    { id: 'tropical',  name: 'Tropical',        color: '#ff3b30', color2: '#ff9f6b', photo: 'assets/img/tropical-mano-cielo.webp',
+      desc: 'Frutas tropicales intensas, con un final fresco. El sabor rojo que se reconoce desde lejos.' },
+    { id: 'manzana',   name: 'Manzana',         color: '#4fd12a', color2: '#c6f56b', photo: 'assets/img/manzana-trofeos-padel.webp',
+      desc: 'Manzana verde, ácida y refrescante. La compañera de los torneos y las sesiones largas.' },
+    { id: 'mandarina', name: 'Mandarina',       color: '#ff8a00', color2: '#ffd166', photo: 'assets/img/mandarina-mundial-2026.webp',
+      desc: 'Mandarina jugosa y luminosa. Para alentar, entrenar y aguantar el calor.' },
+    { id: 'azul',      name: 'Frambuesa azul',  color: '#38a3ff', color2: '#b5e0ff', photo: '',
+      desc: '[Confirmar nombre] Sabor frío y afrutado, ideal para después del entreno.' },
+    { id: 'uva',       name: 'Uva',             color: '#8b5cf6', color2: '#d6c8ff', photo: '',
+      desc: '[Confirmar nombre] Uva intensa con final limpio. Sabor clásico de hidratación.' },
   ];
 
   const SIZES = [
-    { id: '500',  ml: 500,  label: '500 ml' },   // TODO confirmar formato comercial en Perú (475 / 500 ml)
-    { id: '1000', ml: 1000, label: '1 L' },
+    { id: '625', ml: 625, label: '625 ml' },
   ];
 
-  // Valores por 100 ml (referenciales). Se pueden sobrescribir por sabor con FLAVOR_OVERRIDES.
+  // Valores por 100 ml (REFERENCIALES salvo 0 azúcar / 0 calorías, que figuran en el envase).
   const NUTRITION_100 = {
-    energia:   { name: 'Energía',            unit: 'kcal', v: 10,  vd: 2000, key: true,  color: '#0a1224' },
-    grasas:    { name: 'Grasas totales',     unit: 'g',    v: 0 },
-    carbos:    { name: 'Carbohidratos',      unit: 'g',    v: 2.5 },
-    azucares:  { name: 'Azúcares',           unit: 'g',    v: 2.5, vd: 50,   key: true, sub: true, color: 'var(--acc)',
-                 hint: 'La OMS recomienda menos de 50 g de azúcares libres al día.' },
-    proteinas: { name: 'Proteínas',          unit: 'g',    v: 0 },
-    sodio:     { name: 'Sodio',              unit: 'mg',   v: 92,  vd: 2300, key: true,  color: '#0891b2', tag: 'Na⁺' },
-    potasio:   { name: 'Potasio',            unit: 'mg',   v: 78,  vd: 3500, key: true,  color: '#d4a106', tag: 'K⁺' },
-    cloruro:   { name: 'Cloruro',            unit: 'mg',   v: 120, tag: 'Cl⁻' },
-    zinc:      { name: 'Zinc',               unit: 'mg',   v: 0.5, vd: 11,   color: '#e11d48', tag: 'Zn²⁺' },
+    energia:   { name: 'Energía',          unit: 'kcal', v: 0,    vd: 2000, key: true, color: '#0a1224' },
+    grasas:    { name: 'Grasas totales',   unit: 'g',    v: 0 },
+    carbos:    { name: 'Carbohidratos',    unit: 'g',    v: 0 },
+    azucares:  { name: 'Azúcares',         unit: 'g',    v: 0,    vd: 50,   key: true, sub: true, color: 'var(--acc)',
+                 hint: 'Sin azúcar · endulzada con [edulcorante, confirmar].' },
+    proteinas: { name: 'Proteínas',        unit: 'g',    v: 0 },
+    sodio:     { name: 'Sodio',            unit: 'mg',   v: 40,   vd: 2300, key: true, color: '#0891b2', tag: 'Na⁺' },
+    potasio:   { name: 'Potasio',          unit: 'mg',   v: 35,   vd: 3500, key: true, color: '#d4a106', tag: 'K⁺' },
+    cloruro:   { name: 'Cloruro',          unit: 'mg',   v: 55,   tag: 'Cl⁻' },
+    vitb6:     { name: 'Vitamina B6',      unit: 'mg',   v: 0.1,  vd: 1.7,  color: '#7c3aed' },
+    vitb12:    { name: 'Vitamina B12',     unit: 'µg',   v: 0.2,  vd: 2.4,  color: '#7c3aed' },
   };
   const FLAVOR_OVERRIDES = { /* ej.: tropical: { azucares: 2.6, energia: 11 } */ };
 
@@ -187,7 +190,7 @@
   new IntersectionObserver(([e]) => { heroVisible = e.isIntersecting; }).observe($('[data-hero]'));
 
   /* ---------- Flavor lab ---------- */
-  const state = { flavor: FLAVORS[0], size: SIZES[1], basis: 'bottle' };
+  const state = { flavor: FLAVORS[0], size: SIZES[0], basis: 'bottle' };
   const chipsWrap = $('[data-flavor-chips]'), segWrap = $('[data-size-seg]'), rowsWrap = $('[data-nrows]');
   const labBottle = $('[data-lab-bottle]'), bigName = $('[data-flavor-big]');
 
@@ -205,13 +208,14 @@
   $('[data-lineup]').innerHTML = FLAVORS.map(f => `
     <button class="lcard" data-lineup-flavor="${f.id}" style="--c:${f.color}" data-cursor="Ver tabla">
       <span class="lcard__name">${f.name}</span>
-      <span class="ph"><span class="mono">IMG · ${f.name} · botella + fruta</span></span>
+      ${f.photo ? `<img class="lcard__img" src="${f.photo}" alt="" loading="lazy">` : `<span class="ph"><span class="mono">IMG · ${f.name} · foto de producto</span></span>`}
       <span class="lcard__foot mono"><span>${SIZES.map(s => s.label).join(' · ')}</span><i class="arrow"></i></span>
     </button>`).join('');
 
   const fmt = (v, unit) => {
-    const d = v === 0 ? 0 : v < 10 ? 1 : 0;
-    return `${v.toFixed(d).replace(/\.0$/, '')} ${unit}`;
+    const d = v === 0 ? 0 : v < 1 ? 2 : v < 10 ? 1 : 0;
+    const t = v.toFixed(d);
+    return `${t.includes('.') ? t.replace(/\.?0+$/, '') : t} ${unit}`;
   };
 
   function renderNutrition() {
@@ -224,8 +228,8 @@
       $('[data-val]', row).textContent = fmt(val, n.unit);
       if (n.vd) {
         const pct = val / n.vd * 100;
-        $('.nrow__bar i', row).style.width = clamp(pct, 1.5, 100) + '%';
-        $('[data-hint]', row).textContent = `${pct < 1 ? '<1' : Math.round(pct)}% del valor diario de referencia${n.hint ? ' · ' + n.hint : ''}`;
+        $('.nrow__bar i', row).style.width = (pct === 0 ? 0 : clamp(pct, 1.5, 100)) + '%';
+        $('[data-hint]', row).textContent = `${pct === 0 ? '0' : pct < 1 ? '<1' : Math.round(pct)}% del valor diario de referencia${n.hint ? ' · ' + n.hint : ''}`;
       }
     });
   }
@@ -233,7 +237,7 @@
   function applyTheme(f) {
     root.style.setProperty('--acc', f.color);
     root.style.setProperty('--acc-2', f.color2);
-    $$('[data-bottle-flavor]').forEach(t => t.textContent = f.name.toUpperCase().replace('FRUTAS ', ''));
+    $$('[data-bottle-flavor]').forEach(t => t.textContent = f.name.toUpperCase());
   }
 
   function setFlavor(id, animate = true) {
@@ -322,7 +326,7 @@
   const absorb = $('[data-absorb]');
   let absorbOn = false, parts = [];
   (function buildParticles() {
-    const spec = [['na', 10, 12], ['gl', 6, 12], ['h2o', 22, 7]];
+    const spec = [['na', 10, 12], ['k', 7, 11], ['h2o', 22, 7]];
     spec.forEach(([type, n, size]) => {
       for (let i = 0; i < n; i++) {
         const el = document.createElement('span');
@@ -352,10 +356,15 @@
   }
 
   /* ---------- Events: imagen flotante ---------- */
-  const float = $('.events__float'), floatLabel = $('[data-float-label]');
+  const float = $('.events__float'), floatLabel = $('[data-float-label]'), floatImg = $('[data-float-img]');
   const fpos = { x: 0, y: 0 };
   $$('[data-events] li').forEach(li => {
-    li.addEventListener('pointerenter', () => { float.classList.add('is-on'); floatLabel.textContent = `IMG · ${li.dataset.img}`; });
+    li.addEventListener('pointerenter', () => {
+      float.classList.add('is-on');
+      floatLabel.textContent = `IMG · ${li.dataset.img}`;
+      floatImg.hidden = !li.dataset.src;
+      if (li.dataset.src) floatImg.src = li.dataset.src;
+    });
     li.addEventListener('pointerleave', () => float.classList.remove('is-on'));
   });
 
