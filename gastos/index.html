@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="styles.css?v=20260928d">
+<link rel="stylesheet" href="styles.css?v=20260929a">
 <script>
   try { var t = localStorage.getItem('fs-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
@@ -155,7 +155,7 @@
       <!-- pay form -->
       <form id="payForm" class="auth__form" novalidate>
         <div>
-          <h2>Paga <span data-price>S/ 10</span> con Yape o Plin</h2>
+          <h2>Paga <span data-price>S/ 10</span> con <span id="payMethodsLabel">Yape o Plin</span></h2>
           <p class="muted" id="payHello">Haz el pago desde tu celular y luego envíanos el número de operación.</p>
         </div>
         <div class="notice notice--bad" id="payRejected" hidden></div>
@@ -164,7 +164,7 @@
         <label class="field"><span>Número de operación</span>
           <input type="text" name="operation" inputmode="numeric" autocomplete="off" required placeholder="Lo ves en el comprobante de tu pago"></label>
         <label class="field"><span>Nombre de quien pagó</span>
-          <input type="text" name="payer" autocomplete="name" required maxlength="80" placeholder="Como aparece en Yape/Plin"></label>
+          <input type="text" name="payer" autocomplete="name" required maxlength="80" placeholder="Como aparece en el comprobante"></label>
         <p class="form-error" role="alert" hidden></p>
         <button type="submit" class="btn btn--primary btn--lg">Ya pagué, enviar comprobante</button>
       </form>
@@ -578,6 +578,6 @@
 <div class="tooltip" id="tooltip" role="status" hidden></div>
 <div class="toast" id="toast" role="status" hidden></div>
 
-<script src="app.js?v=20260928d"></script>
+<script src="app.js?v=20260929a"></script>
 </body>
 </html>

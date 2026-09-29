@@ -52,9 +52,9 @@ $config = [
     // Pago único para activar la cuenta (Yape / Plin, aprobación manual)
     'payment_required' => true,           // false = la app es gratis, sin pago
     'price'            => 10,             // monto en soles
-    'yape_number'      => '',             // ej. '987 654 321' (vacío = no mostrar Yape)
+    'yape_number'      => '904 319 929',  // vacío = no mostrar Yape
     'yape_holder'      => '',             // nombre que aparece al yapear, ej. 'Fernando P.'
-    'yape_qr'          => '',             // opcional: imagen de tu QR de Yape, ej. 'img/yape-qr.png' (dentro de gastos/)
+    'yape_qr'          => 'img/yape-qr.png', // imagen de tu QR de Yape (dentro de gastos/)
     'plin_number'      => '',             // vacío = no mostrar Plin
     'plin_holder'      => '',
     'review_hours'     => 12,             // "revisamos tu pago en menos de X horas"

@@ -1048,6 +1048,7 @@
     $('#payHello').textContent = 'Hola ' + (u.name || '').split(' ')[0] + ', haz el pago desde tu celular y luego envíanos el número de operación.';
     const methods = ['yape', 'plin'].filter((m) => pay[m]);
     $('#payUnavailable').hidden = methods.length > 0;
+    $('#payMethodsLabel').textContent = methods.map((m) => (m === 'yape' ? 'Yape' : 'Plin')).join(' o ');
     if (!methods.includes(payMethod)) payMethod = methods[0] || null;
     $('#payTabs').hidden = methods.length < 2;
     $('#payTabs').innerHTML = methods.map((m) => '<button type="button" role="tab" data-pay-method="' + m + '" aria-selected="' + (m === payMethod) + '">' + (m === 'yape' ? 'Yape' : 'Plin') + '</button>').join('');
@@ -1072,11 +1073,12 @@
     if (!m) { $('#payBox').innerHTML = ''; return; }
     const name = payMethod === 'yape' ? 'Yape' : 'Plin';
     $('#payBox').innerHTML =
-      (m.qr ? '<img src="' + esc(m.qr) + '" alt="Código QR de ' + name + '">' : '') +
+      (m.qr ? '<img src="' + esc(m.qr) + '" alt="Código QR de ' + name + '">' +
+        '<a class="qr-save" href="' + esc(m.qr) + '" download="qr-' + payMethod + '.png">Guardar QR en mi celular</a>' : '') +
       '<span class="amount">Envía ' + soles(pay.price || 10) + ' por ' + name + ' al número</span>' +
       '<div class="pay-number"><strong>' + esc(m.number) + '</strong><button type="button" class="btn btn--ghost btn--sm" data-copy="' + esc(m.number.replace(/\s/g, '')) + '">Copiar</button></div>' +
       (m.holder ? '<span class="holder">A nombre de <strong>' + esc(m.holder) + '</strong></span>' : '') +
-      '<ol class="pay-steps"><li>Abre ' + name + ' y ' + (m.qr ? 'escanea el QR o ' : '') + 'escribe el número.</li><li>Envía exactamente ' + soles(pay.price || 10) + '.</li><li>Copia el <strong>número de operación</strong> del comprobante y pégalo abajo.</li></ol>';
+      '<ol class="pay-steps"><li>Abre ' + name + ' y ' + (m.qr ? 'escanea el QR (o súbelo desde tu galería) o ' : '') + 'escribe el número.</li><li>Envía exactamente ' + soles(pay.price || 10) + '.</li><li>Copia el <strong>número de operación</strong> del comprobante y pégalo abajo.</li></ol>';
   }
   async function checkPaid() {
     if (payView.hidden) return clearInterval(payPoll);

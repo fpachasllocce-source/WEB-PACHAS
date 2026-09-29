@@ -605,3 +605,4 @@ body:not(.is-loading) .loader { display: none; }
 .budget__txt { flex-wrap: wrap; }
 .budget__set { white-space: normal; text-align: left; }
 @media (max-width: 480px) { .budget__txt b { white-space: normal; } }
+.qr-save { font-size: 13px; font-weight: 700; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; margin-top: -4px; }
